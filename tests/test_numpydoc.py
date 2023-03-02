@@ -1,5 +1,5 @@
 from inspect import cleandoc, getdoc
-from typing import Dict, Sequence, Union
+from typing import Dict, Optional, Sequence, Union
 
 import pytest
 from testfixtures import compare
@@ -221,7 +221,7 @@ def test_parameter_types():
     )
     def f(
         bar: int,
-        baz: str,
+        baz: Optional[str],  # N.B., this is shorthand for Union
         qux: Sequence[str],
         spam: Union[list, str],
         eggs: Dict[str, Sequence],
@@ -236,7 +236,7 @@ def test_parameter_types():
     ----------
     bar : int
         This is very bar.
-    baz : str
+    baz : Union[str, NoneType]
         This is totally baz.
     qux : Sequence[str]
         Many strings.
