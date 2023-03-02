@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from inspect import cleandoc, signature
+from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
 
 newline = "\n"
@@ -17,9 +17,24 @@ def indent_para(s):
     return indent(para(s), prefix="    ")
 
 
-def format_parameters(parameters):
+def format_parameters(parameters, sig):
     docstring = ""
-    for param_name, param_doc in parameters.items():
+    # display parameters in order given in function signature
+    for param_name, param in sig.parameters.items():
+        param_doc = parameters[param_name]
+        docstring += param_name.strip()
+        if param.annotation is not Parameter.empty:
+            docstring += f" : {param.annotation}"
+        docstring += newline
+        docstring += indent_para(param_doc)
+        docstring += newline
+    docstring += newline
+    return docstring
+
+
+def format_returns(returns, sig):
+    docstring = ""
+    for param_name, param_doc in returns.items():
         docstring += param_name.strip()
         docstring += newline
         docstring += indent_para(param_doc)
@@ -58,12 +73,12 @@ def doc(
         if parameters:
             docstring += "Parameters" + newline
             docstring += "----------" + newline
-            docstring += format_parameters(parameters)
+            docstring += format_parameters(parameters, sig)
 
         if returns:
             docstring += "Returns" + newline
             docstring += "-------" + newline
-            docstring += format_parameters(returns)
+            docstring += format_returns(returns, sig)
 
         # final cleanup
         docstring = cleandoc(docstring)

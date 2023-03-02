@@ -174,3 +174,62 @@ def test_extra_param():
         )
         def f(bar, baz):
             pass
+
+
+def test_parameter_order():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with typed parameters.",
+        parameters={
+            # given in different order from signature
+            "baz": "This is totally baz.",
+            "bar": "This is very bar.",
+        },
+    )
+    def f(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with typed parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_parameter_types():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with typed parameters.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+        },
+    )
+    def f(bar: int, baz: str):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with typed parameters.
+
+    Parameters
+    ----------
+    bar : int
+        This is very bar.
+    baz : str
+        This is totally baz.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
