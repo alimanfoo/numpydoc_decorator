@@ -24,7 +24,7 @@ def format_parameters(parameters, sig):
         param_doc = parameters[param_name]
         docstring += param_name.strip()
         if param.annotation is not Parameter.empty:
-            docstring += f" : {param.annotation}"
+            docstring += f" : {param.annotation.__name__}"
         docstring += newline
         docstring += indent_para(param_doc)
         docstring += newline
