@@ -29,16 +29,16 @@ def format_parameters(parameters):
 
 
 def doc(
-    preamble: str = None,
+    summary: str = None,
     parameters: Mapping = None,
     returns: Mapping = None,
 ):
     def decorator(f):
         docstring = ""
 
-        # add preamble
-        if preamble:
-            docstring += para(preamble)
+        # add summary
+        if summary:
+            docstring += para(summary)
             docstring += newline
             docstring += newline
 
