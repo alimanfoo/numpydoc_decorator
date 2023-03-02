@@ -10,7 +10,7 @@ from docstring_builder.numpydoc import DocumentationError, doc
 def test_basic():
     # noinspection PyUnusedLocal
     @doc(
-        summary="A function with simple arguments.",
+        summary="A function with simple parameters.",
         parameters={
             "bar": "This is very bar.",
             "baz": "This is totally baz.",
@@ -24,7 +24,7 @@ def test_basic():
 
     expected = cleandoc(
         """
-    A function with simple arguments.
+    A function with simple parameters.
 
     Parameters
     ----------
@@ -46,7 +46,7 @@ def test_basic():
 def test_long_summary():
     # noinspection PyUnusedLocal
     @doc(
-        summary="A function with simple arguments and a very long summary. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
+        summary="A function with simple parameters and a very long summary. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
         parameters={
             "bar": "This is very bar.",
             "baz": "This is totally baz.",
@@ -60,7 +60,7 @@ def test_long_summary():
 
     expected = cleandoc(
         """
-    A function with simple arguments and a very long summary. Lorem ipsum
+    A function with simple parameters and a very long summary. Lorem ipsum
     dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
     incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
     quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
@@ -89,7 +89,7 @@ def test_long_summary():
 def test_long_param_doc():
     # noinspection PyUnusedLocal
     @doc(
-        summary="A function with simple arguments and a very long param doc.",
+        summary="A function with simple parameters and a very long param doc.",
         parameters={
             "bar": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
             "baz": "This is totally baz.",
@@ -103,7 +103,7 @@ def test_long_param_doc():
 
     expected = cleandoc(
         """
-    A function with simple arguments and a very long param doc.
+    A function with simple parameters and a very long param doc.
 
     Parameters
     ----------
@@ -129,41 +129,62 @@ def test_long_param_doc():
 
 
 def test_missing_param():
-    with pytest.raises(DocumentationError):
-        # noinspection PyUnusedLocal
-        @doc(
-            summary="A function with simple arguments.",
-            parameters={
-                "bar": "This is very bar.",
-                # baz parameter is missing
-            },
-            returns={
-                "qux": "Amazingly qux.",
-            },
-        )
-        def f(bar, baz):
-            pass
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters={
+            "bar": "This is very bar.",
+            # baz parameter is missing
+        },
+    )
+    def f(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
 
 
 def test_missing_params():
-    with pytest.raises(DocumentationError):
-        # noinspection PyUnusedLocal
-        @doc(
-            summary="A function with simple arguments.",
-            # no parameters given at all
-            returns={
-                "qux": "Amazingly qux.",
-            },
-        )
-        def f(bar, baz):
-            pass
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        # no parameters given at all
+    )
+    def f(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+    baz
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
 
 
 def test_extra_param():
     with pytest.raises(DocumentationError):
         # noinspection PyUnusedLocal
         @doc(
-            summary="A function with simple arguments.",
+            summary="A function with simple parameters.",
             parameters={
                 "bar": "This is very bar.",
                 "baz": "This is totally baz.",
