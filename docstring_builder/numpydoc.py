@@ -42,6 +42,7 @@ def format_annotation(t):
 
 
 def format_returns(returns, sig):
+    # TODO return type annotations
     docstring = ""
     for param_name, param_doc in returns.items():
         docstring += param_name.strip()
@@ -89,6 +90,24 @@ def doc(
             docstring += "Returns" + newline
             docstring += "-------" + newline
             docstring += format_returns(returns, sig)
+
+        # TODO yields
+
+        # TODO receives
+
+        # TODO raises
+
+        # TODO warns
+
+        # TODO warnings
+
+        # TODO see also
+
+        # TODO notes
+
+        # TODO references
+
+        # TODO examples
 
         # final cleanup
         docstring = cleandoc(docstring)
