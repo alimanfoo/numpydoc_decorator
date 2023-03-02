@@ -1,4 +1,5 @@
 from inspect import cleandoc, getdoc
+from typing import Dict, Sequence, Union
 
 import pytest
 from testfixtures import compare
@@ -174,3 +175,77 @@ def test_extra_param():
         )
         def f(bar, baz):
             pass
+
+
+def test_parameter_order():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with typed parameters.",
+        parameters={
+            # given in different order from signature
+            "baz": "This is totally baz.",
+            "bar": "This is very bar.",
+        },
+    )
+    def f(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with typed parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_parameter_types():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with typed parameters.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "qux": "Many strings.",
+            "spam": "Very healthy.",
+            "eggs": "Good on toast.",
+        },
+    )
+    def f(
+        bar: int,
+        baz: str,
+        qux: Sequence[str],
+        spam: Union[list, str],
+        eggs: Dict[str, Sequence],
+    ):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with typed parameters.
+
+    Parameters
+    ----------
+    bar : int
+        This is very bar.
+    baz : str
+        This is totally baz.
+    qux : Sequence[str]
+        Many strings.
+    spam : Union[list, str]
+        Very healthy.
+    eggs : Dict[str, Sequence]
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
