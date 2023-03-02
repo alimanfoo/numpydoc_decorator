@@ -9,6 +9,10 @@ packages = [{include = "docstring_builder"}]
 [tool.poetry.dependencies]
 python = "^3.7"
 
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-xdist = "*"
+testfixtures = "*"
 
 [build-system]
 requires = ["poetry-core"]
