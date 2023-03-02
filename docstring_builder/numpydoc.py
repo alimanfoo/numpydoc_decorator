@@ -24,12 +24,21 @@ def format_parameters(parameters, sig):
         param_doc = parameters[param_name]
         docstring += param_name.strip()
         if param.annotation is not Parameter.empty:
-            docstring += f" : {param.annotation.__name__}"
+            docstring += f" : {format_annotation(param.annotation)}"
         docstring += newline
         docstring += indent_para(param_doc)
         docstring += newline
     docstring += newline
     return docstring
+
+
+def format_annotation(t):
+    # This is probably a bit hacky, could be improved.
+    s = repr(t)
+    if s.startswith("<class"):
+        s = t.__name__
+    s = s.replace("typing.", "")
+    return s
 
 
 def format_returns(returns, sig):
@@ -58,6 +67,7 @@ def doc(
             docstring += newline
 
         # check parameters against function signature
+        # TODO strict=False generate docs for missing params
         sig = signature(f)
         expected_param_names = list(sig.parameters)
         given_param_names = list(parameters) if parameters else []
