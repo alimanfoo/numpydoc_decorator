@@ -1,8 +1,7 @@
-from textwrap import indent, dedent, fill
 from inspect import cleandoc
+from textwrap import dedent, fill, indent
 
-
-newline = '\n'
+newline = "\n"
 
 
 def para(s):
@@ -29,9 +28,7 @@ def doc(
     parameters=None,
     returns=None,
 ):
-
     def decorator(f):
-
         docstring = ""
 
         # add preamble
