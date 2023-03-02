@@ -6,7 +6,8 @@ from testfixtures import compare
 from docstring_builder.numpydoc import DocumentationError, doc
 
 
-def test_params():
+def test_basic():
+    # noinspection PyUnusedLocal
     @doc(
         preamble="A function with simple arguments.",
         parameters={
@@ -42,6 +43,7 @@ def test_params():
 
 
 def test_long_preamble():
+    # noinspection PyUnusedLocal
     @doc(
         preamble="A function with simple arguments and a very long preamble. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
         parameters={
@@ -84,6 +86,7 @@ def test_long_preamble():
 
 
 def test_long_param_doc():
+    # noinspection PyUnusedLocal
     @doc(
         preamble="A function with simple arguments and a very long param doc.",
         parameters={
@@ -126,12 +129,44 @@ def test_long_param_doc():
 
 def test_missing_param():
     with pytest.raises(DocumentationError):
-
+        # noinspection PyUnusedLocal
         @doc(
             preamble="A function with simple arguments.",
             parameters={
                 "bar": "This is very bar.",
                 # baz parameter is missing
+            },
+            returns={
+                "qux": "Amazingly qux.",
+            },
+        )
+        def f(bar, baz):
+            pass
+
+
+def test_missing_params():
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            preamble="A function with simple arguments.",
+            # no parameters given at all
+            returns={
+                "qux": "Amazingly qux.",
+            },
+        )
+        def f(bar, baz):
+            pass
+
+
+def test_extra_param():
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            preamble="A function with simple arguments.",
+            parameters={
+                "bar": "This is very bar.",
+                "baz": "This is totally baz.",
+                "spam": "This parameter is not in the signature.",
             },
             returns={
                 "qux": "Amazingly qux.",

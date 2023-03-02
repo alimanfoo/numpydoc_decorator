@@ -1,4 +1,5 @@
-from inspect import cleandoc
+from collections.abc import Mapping
+from inspect import cleandoc, signature
 from textwrap import dedent, fill, indent
 
 newline = "\n"
@@ -28,9 +29,9 @@ def format_parameters(parameters):
 
 
 def doc(
-    preamble=None,
-    parameters=None,
-    returns=None,
+    preamble: str = None,
+    parameters: Mapping = None,
+    returns: Mapping = None,
 ):
     def decorator(f):
         docstring = ""
@@ -41,13 +42,23 @@ def doc(
             docstring += newline
             docstring += newline
 
-        # add parameters
+        # check parameters against function signature
+        sig = signature(f)
+        expected_param_names = list(sig.parameters)
+        given_param_names = list(parameters) if parameters else []
+        for e in expected_param_names:
+            if e not in given_param_names:
+                raise DocumentationError(f"Parameter {e} not documented.")
+        for g in given_param_names:
+            if g not in expected_param_names:
+                raise DocumentationError(
+                    f"Parameter {g} not found in function signature."
+                )
+
         if parameters:
             docstring += "Parameters" + newline
             docstring += "----------" + newline
             docstring += format_parameters(parameters)
-
-        # TODO check parameters against function signature
 
         if returns:
             docstring += "Returns" + newline
