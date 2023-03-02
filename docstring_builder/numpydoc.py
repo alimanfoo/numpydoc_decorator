@@ -4,6 +4,10 @@ from textwrap import dedent, fill, indent
 newline = "\n"
 
 
+class DocumentationError(Exception):
+    pass
+
+
 def para(s):
     return fill(dedent(s.strip()))
 
