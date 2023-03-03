@@ -34,10 +34,9 @@ def format_parameters(parameters, sig):
         if param.annotation is not Parameter.empty:
             docstring += f" : {format_type(param.annotation)}"
         docstring += newline
-        if param_name in parameters:
-            param_doc = parameters[param_name]
-            docstring += indent_para(param_doc)
-            docstring += newline
+        param_doc = parameters[param_name]
+        docstring += indent_para(param_doc)
+        docstring += newline
     docstring += newline
     return docstring
 
@@ -95,12 +94,10 @@ def format_returns_named(returns, sig):
         return_types = [return_annotation]
 
     if len(returns) > len(return_types):
-        # TODO raise
-        pass
+        raise DocumentationError("more return values documented than types")
 
     if len(returns) < len(return_types):
-        # TODO fill
-        pass
+        raise DocumentationError("more return types than values documented")
 
     for (return_name, return_doc), return_type in zip(returns.items(), return_types):
         docstring += return_name.strip()
@@ -133,6 +130,9 @@ def doc(
 
         # check parameters against function signature
         sig = signature(f)
+        for e in sig.parameters:
+            if e not in parameters:
+                raise DocumentationError(f"Parameter {e} not documented.")
         for g in parameters:
             if g not in sig.parameters:
                 raise DocumentationError(

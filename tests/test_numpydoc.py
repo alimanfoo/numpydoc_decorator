@@ -129,55 +129,28 @@ def test_long_param_doc():
 
 
 def test_missing_param():
-    # noinspection PyUnusedLocal
-    @doc(
-        summary="A function with simple parameters.",
-        parameters={
-            "bar": "This is very bar.",
-            # baz parameter is missing
-        },
-    )
-    def f(bar, baz):
-        pass
-
-    expected = cleandoc(
-        """
-    A function with simple parameters.
-
-    Parameters
-    ----------
-    bar
-        This is very bar.
-    baz
-
-    """
-    )
-    actual = getdoc(f)
-    compare(actual, expected)
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            parameters={
+                "bar": "This is very bar.",
+                # baz parameter is missing
+            },
+        )
+        def f(bar, baz):
+            pass
 
 
 def test_missing_params():
-    # noinspection PyUnusedLocal
-    @doc(
-        summary="A function with simple parameters.",
-        # no parameters given at all
-    )
-    def f(bar, baz):
-        pass
-
-    expected = cleandoc(
-        """
-    A function with simple parameters.
-
-    Parameters
-    ----------
-    bar
-    baz
-
-    """
-    )
-    actual = getdoc(f)
-    compare(actual, expected)
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            # no parameters given at all
+        )
+        def f(bar, baz):
+            pass
 
 
 def test_extra_param():
@@ -447,3 +420,63 @@ def test_returns_multi_typed_ellipsis():
     )
     actual = getdoc(f)
     compare(actual, expected)
+
+
+def test_returns_extra_value():
+    # here there are more return values documented than there are types
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            returns={
+                "spam": "Surprisingly healthy.",
+                "eggs": "Good on toast.",
+            },
+        )
+        def f() -> str:
+            return "dinner"
+
+
+def test_returns_extra_values():
+    # here there are more return values documented than there are types
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            returns={
+                "spam": "Surprisingly healthy.",
+                "eggs": "Good on toast.",
+                "toast": "Good with eggs.",
+            },
+        )
+        def f() -> Tuple[str, str]:
+            return "spam", "eggs"
+
+
+def test_returns_extra_type():
+    # here there are more return types than return values documented
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            returns={
+                "spam": "Surprisingly healthy.",
+            },
+        )
+        def f() -> Tuple[str, str]:
+            return "spam", "eggs"
+
+
+def test_returns_extra_types():
+    # here there are more return types than return values documented
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            returns={
+                "spam": "Surprisingly healthy.",
+                "eggs": "Good on toast.",
+            },
+        )
+        def f() -> Tuple[str, str, str]:
+            return "spam", "eggs", "toast"
