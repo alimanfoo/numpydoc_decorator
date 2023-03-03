@@ -109,6 +109,7 @@ def format_returns_named(returns, sig):
 def doc(
     summary: str = None,
     deprecation: Optional[Mapping[str, str]] = None,
+    extended_summary: Optional[str] = None,
     parameters: Optional[Mapping[str, str]] = None,
     returns: Optional[Union[str, Mapping[str, str]]] = None,
 ):
@@ -129,7 +130,10 @@ def doc(
             docstring += indent_para(deprecation["reason"])
             docstring += newline
 
-        # TODO extended summary
+        # add extended summary
+        if extended_summary:
+            docstring += para(extended_summary)
+            docstring += newline
 
         # check parameters against function signature
         sig = signature(f)
