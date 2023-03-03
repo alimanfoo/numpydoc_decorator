@@ -32,7 +32,7 @@ def format_parameters(parameters, sig):
     for param_name, param in sig.parameters.items():
         docstring += param_name.strip()
         if param.annotation is not Parameter.empty:
-            docstring += f" : {format_annotation(param.annotation)}"
+            docstring += f" : {format_type(param.annotation)}"
         docstring += newline
         if param_name in parameters:
             param_doc = parameters[param_name]
@@ -42,7 +42,7 @@ def format_parameters(parameters, sig):
     return docstring
 
 
-def format_annotation(t):
+def format_type(t):
     # This is probably a bit hacky, could be improved.
     s = repr(t)
     if s.startswith("<class"):
@@ -67,7 +67,7 @@ def format_returns_simple(returns, sig):
         docstring = para(returns)
     else:
         # provide the type
-        docstring = format_annotation(return_type)
+        docstring = format_type(return_type)
         docstring += newline
         docstring += indent_para(returns)
     docstring += newline
@@ -76,18 +76,18 @@ def format_returns_simple(returns, sig):
 
 def format_returns_named(returns, sig):
     docstring = ""
-    return_type = sig.return_annotation
+    return_annotation = sig.return_annotation
 
     # handle possibility of multiple return values
-    if typing_get_origin(return_type) is tuple:
+    if typing_get_origin(return_annotation) is tuple:
         # trust the return annotation regarding the number of return values
-        return_types = typing_get_args(return_type)
-    elif return_type is Parameter.empty:
+        return_types = typing_get_args(return_annotation)
+    elif return_annotation is Parameter.empty:
         # trust the documentation regarding number of return values
         return_types = [Parameter.empty] * len(returns)
     else:
         # assume a single return value
-        return_types = [return_type]
+        return_types = [return_annotation]
 
     if len(returns) > len(return_types):
         # TODO raise
@@ -97,12 +97,12 @@ def format_returns_named(returns, sig):
         # TODO fill
         pass
 
-    for (param_name, param_doc), param_type in zip(returns.items(), return_types):
-        docstring += param_name.strip()
-        if param_type is not Parameter.empty:
-            docstring += f" : {format_annotation(param_type)}"
+    for (return_name, return_doc), return_type in zip(returns.items(), return_types):
+        docstring += return_name.strip()
+        if return_type is not Parameter.empty:
+            docstring += f" : {format_type(return_type)}"
         docstring += newline
-        docstring += indent_para(param_doc)
+        docstring += indent_para(return_doc)
         docstring += newline
     docstring += newline
 
