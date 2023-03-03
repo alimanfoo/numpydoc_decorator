@@ -1,5 +1,5 @@
 from inspect import cleandoc, getdoc
-from typing import Dict, Optional, Sequence, Union
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import pytest
 from testfixtures import compare
@@ -264,6 +264,158 @@ def test_parameter_types():
     spam : Union[list, str]
         Very healthy.
     eggs : Dict[str, Sequence]
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_returns_basic():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        returns="Amazingly qux.",
+    )
+    def f():
+        return 42
+
+    # this isn't strictly kosher as numpydoc demands type is always given
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    Amazingly qux.
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_returns_basic_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        returns="Amazingly qux.",
+    )
+    def f() -> int:
+        return 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    int
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_returns_named():
+    @doc(
+        summary="A function.",
+        returns={
+            "qux": "Amazingly qux.",
+        },
+    )
+    def f():
+        return 42
+
+    # this isn't strictly kosher as numpydoc demands type is always given
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_returns_named_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        returns={
+            "qux": "Amazingly qux.",
+        },
+    )
+    def f() -> int:
+        return 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    qux : int
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_returns_multi():
+    @doc(
+        summary="A function.",
+        returns={
+            "spam": "Very healthy.",
+            "eggs": "Good on toast.",
+        },
+    )
+    def f():
+        return "hello", 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    spam
+        Very healthy.
+    eggs
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_returns_multi_typed():
+    @doc(
+        summary="A function.",
+        returns={
+            "spam": "Very healthy.",
+            "eggs": "Good on toast.",
+        },
+    )
+    def f() -> Tuple[str, int]:
+        return "hello", 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    spam : str
+        Very healthy.
+    eggs : int
         Good on toast.
 
     """

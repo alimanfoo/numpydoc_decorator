@@ -1,6 +1,15 @@
 from collections.abc import Mapping
 from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
+from typing import Union
+
+try:
+    from typing import get_args as typing_get_args
+    from typing import get_origin as typing_get_origin
+except ImportError:
+    from typing_extensions import get_args as typing_get_args
+    from typing_extensions import get_origin as typing_get_origin
+
 
 newline = "\n"
 
@@ -43,21 +52,67 @@ def format_annotation(t):
 
 
 def format_returns(returns, sig):
-    # TODO return type annotations
+    if isinstance(returns, str):
+        return format_returns_simple(returns, sig)
+    elif isinstance(returns, Mapping):
+        return format_returns_named(returns, sig)
+    else:
+        raise TypeError("returns must be str or Mapping")
+
+
+def format_returns_simple(returns, sig):
+    return_type = sig.return_annotation
+    if return_type is Parameter.empty:
+        # just assume it's a description of the return value
+        docstring = para(returns)
+    else:
+        # provide the type
+        docstring = format_annotation(return_type)
+        docstring += newline
+        docstring += indent_para(returns)
+    docstring += newline
+    return docstring
+
+
+def format_returns_named(returns, sig):
     docstring = ""
-    for param_name, param_doc in returns.items():
+    return_type = sig.return_annotation
+
+    # handle possibility of multiple return values
+    if typing_get_origin(return_type) is tuple:
+        # trust the return annotation regarding the number of return values
+        return_types = typing_get_args(return_type)
+    elif return_type is Parameter.empty:
+        # trust the documentation regarding number of return values
+        return_types = [Parameter.empty] * len(returns)
+    else:
+        # assume a single return value
+        return_types = [return_type]
+
+    if len(returns) > len(return_types):
+        # TODO raise
+        pass
+
+    if len(returns) < len(return_types):
+        # TODO fill
+        pass
+
+    for (param_name, param_doc), param_type in zip(returns.items(), return_types):
         docstring += param_name.strip()
+        if param_type is not Parameter.empty:
+            docstring += f" : {format_annotation(param_type)}"
         docstring += newline
         docstring += indent_para(param_doc)
         docstring += newline
     docstring += newline
+
     return docstring
 
 
 def doc(
     summary: str = None,
     parameters: Mapping = None,
-    returns: Mapping = None,
+    returns: Union[str, Mapping] = None,
 ):
     if parameters is None:
         parameters = dict()

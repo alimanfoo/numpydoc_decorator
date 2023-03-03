@@ -8,6 +8,7 @@ packages = [{include = "docstring_builder"}]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+typing_extensions = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
