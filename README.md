@@ -1,3 +1,3 @@
-# docstring_builder
+# numpydoc_decorator
 
 Here be dragons.
