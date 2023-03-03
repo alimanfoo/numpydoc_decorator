@@ -1,1 +1,1 @@
-from .impl import doc
+from .impl import doc, DocumentationError

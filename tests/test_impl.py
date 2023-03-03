@@ -4,7 +4,7 @@ from typing import Dict, Sequence, Tuple, Union
 import pytest
 from testfixtures import compare
 
-from docstring_builder.numpydoc import DocumentationError, doc
+from numpydoc_decorator import DocumentationError, doc
 
 
 def test_basic():
