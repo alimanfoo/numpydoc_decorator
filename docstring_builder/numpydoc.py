@@ -1,7 +1,6 @@
-from collections.abc import Mapping
 from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Union
+from typing import Mapping, Optional, Union
 
 try:
     from typing import get_args as typing_get_args
@@ -19,7 +18,7 @@ class DocumentationError(Exception):
 
 
 def para(s):
-    return fill(dedent(s.strip()))
+    return fill(dedent(s.strip())) + newline
 
 
 def indent_para(s):
@@ -36,8 +35,6 @@ def format_parameters(parameters, sig):
         docstring += newline
         param_doc = parameters[param_name]
         docstring += indent_para(param_doc)
-        docstring += newline
-    docstring += newline
     return docstring
 
 
@@ -66,8 +63,7 @@ def format_returns_simple(returns, sig):
         docstring = para(returns)
     else:
         # provide the type
-        docstring = format_type(return_type)
-        docstring += newline
+        docstring = format_type(return_type) + newline
         docstring += indent_para(returns)
     docstring += newline
     return docstring
@@ -105,7 +101,6 @@ def format_returns_named(returns, sig):
             docstring += f" : {format_type(return_type)}"
         docstring += newline
         docstring += indent_para(return_doc)
-        docstring += newline
     docstring += newline
 
     return docstring
@@ -113,8 +108,9 @@ def format_returns_named(returns, sig):
 
 def doc(
     summary: str = None,
-    parameters: Mapping = None,
-    returns: Union[str, Mapping] = None,
+    deprecation: Optional[Mapping[str, str]] = None,
+    parameters: Optional[Mapping[str, str]] = None,
+    returns: Optional[Union[str, Mapping[str, str]]] = None,
 ):
     if parameters is None:
         parameters = dict()
@@ -126,7 +122,14 @@ def doc(
         if summary:
             docstring += para(summary)
             docstring += newline
+
+        # add deprecation warning
+        if deprecation:
+            docstring += f".. deprecated:: {deprecation['version']}" + newline
+            docstring += indent_para(deprecation["reason"])
             docstring += newline
+
+        # TODO extended summary
 
         # check parameters against function signature
         sig = signature(f)
@@ -143,6 +146,7 @@ def doc(
             docstring += "Parameters" + newline
             docstring += "----------" + newline
             docstring += format_parameters(parameters, sig)
+            docstring += newline
 
         if returns:
             docstring += "Returns" + newline
