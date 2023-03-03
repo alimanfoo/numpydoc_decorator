@@ -204,7 +204,7 @@ files = [
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -231,4 +231,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "905a21b0f8ddf827c4696ba6c05c8468849b1170576d62d4da4cd416a09ce226"
+content-hash = "c6bafb781c3418b31209f50c962f02f5a930b1d7afcdc996b5ecbe74537b3aae"
