@@ -80,8 +80,13 @@ def format_returns_named(returns, sig):
 
     # handle possibility of multiple return values
     if typing_get_origin(return_annotation) is tuple:
-        # trust the return annotation regarding the number of return values
-        return_types = typing_get_args(return_annotation)
+        typing_args = typing_get_args(return_annotation)
+        if Ellipsis in typing_args:
+            # treat as a single return value
+            return_types = [return_annotation]
+        else:
+            # treat as multiple return values
+            return_types = typing_args
     elif return_annotation is Parameter.empty:
         # trust the documentation regarding number of return values
         return_types = [Parameter.empty] * len(returns)

@@ -422,3 +422,28 @@ def test_returns_multi_typed():
     )
     actual = getdoc(f)
     compare(actual, expected)
+
+
+def test_returns_multi_typed_ellipsis():
+    @doc(
+        summary="A function.",
+        returns={
+            "spam": "The more the better.",
+        },
+    )
+    def f() -> Tuple[str, ...]:
+        return "spam", "spam", "spam", "spam"
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    spam : Tuple[str, ...]
+        The more the better.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
