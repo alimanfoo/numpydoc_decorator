@@ -524,3 +524,48 @@ def test_deprecation():
     )
     actual = getdoc(f)
     compare(actual, expected)
+
+
+def test_extended_summary():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function worth talking about.",
+        extended_summary="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+        },
+        returns={
+            "qux": "Amazingly qux.",
+        },
+    )
+    def f(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function worth talking about.
+
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+    minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+    aliquip ex ea commodo consequat. Duis aute irure dolor in
+    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+    culpa qui officia deserunt mollit anim id est laborum.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
