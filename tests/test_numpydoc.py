@@ -480,3 +480,47 @@ def test_returns_extra_types():
         )
         def f() -> Tuple[str, str, str]:
             return "spam", "eggs", "toast"
+
+
+def test_deprecation():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A deprecated function.",
+        deprecation=dict(
+            version="1.6.0",
+            reason="`ndobj_old` will be removed in NumPy 2.0.0, it is replaced by `ndobj_new` because the latter works also with array subclasses.",  # noqa
+        ),
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+        },
+        returns={
+            "qux": "Amazingly qux.",
+        },
+    )
+    def f(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A deprecated function.
+
+    .. deprecated:: 1.6.0
+        `ndobj_old` will be removed in NumPy 2.0.0, it is replaced by
+        `ndobj_new` because the latter works also with array subclasses.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
