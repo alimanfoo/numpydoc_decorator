@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "docstring-builder"
+name = "numpydoc_decorator"
 version = "0.0.0"
 description = ""
 authors = ["Alistair Miles <alimanfoo@googlemail.com>"]
