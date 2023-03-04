@@ -4,7 +4,7 @@ version = "0.0.0"
 description = ""
 authors = ["Alistair Miles <alimanfoo@googlemail.com>"]
 readme = "README.md"
-packages = [{include = "docstring_builder"}]
+packages = [{include = "numpydoc_decorator"}]
 
 [tool.poetry.dependencies]
 python = "^3.7"
