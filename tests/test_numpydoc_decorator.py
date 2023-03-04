@@ -569,3 +569,16 @@ def test_extended_summary():
     )
     actual = getdoc(f)
     compare(actual, expected)
+
+
+# TODO methods
+# TODO default values
+# TODO yields
+# TODO receives
+# TODO raises
+# TODO warns
+# TODO warnings
+# TODO see also
+# TODO notes
+# TODO references
+# TODO examples
