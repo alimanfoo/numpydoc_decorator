@@ -30,13 +30,25 @@ def format_parameters(parameters, sig):
     # display parameters in order given in function signature
     for param_name, param in sig.parameters.items():
         if param_name == "self":
+            # assume this is a method, don't document self parameter
             continue
+
+        # add parameter name
         docstring += param_name
+
+        # handle type annotation
         if param.annotation is not Parameter.empty:
             docstring += f" : {format_type(param.annotation)}"
+
+        # handle default value
+        if param.default is not Parameter.empty:
+            docstring += f", default={param.default!r}"
+
+        # add parameter description
         docstring += newline
         param_doc = parameters[param_name]
         docstring += indent_para(param_doc)
+
     return docstring
 
 

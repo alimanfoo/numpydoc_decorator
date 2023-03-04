@@ -612,7 +612,90 @@ def test_method():
     compare(actual, expected)
 
 
-# TODO default values
+def test_parameter_defaults():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with parameters and default values.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "qux": "Amazingly qux.",
+            "spam": "Surprisingly healthy.",
+            "eggs": "Good on toast.",
+        },
+    )
+    def f(bar, baz="spam", qux=42, spam=True, eggs=None):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with parameters and default values.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz, default='spam'
+        This is totally baz.
+    qux, default=42
+        Amazingly qux.
+    spam, default=True
+        Surprisingly healthy.
+    eggs, default=None
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_parameter_defaults_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with parameters and default values.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "qux": "Amazingly qux.",
+            "spam": "Surprisingly healthy.",
+            "eggs": "Good on toast.",
+        },
+    )
+    def f(
+        bar: str,
+        baz: str = "spam",
+        qux: int = 42,
+        spam: bool = True,
+        eggs: Union[Sequence, None] = None,
+    ):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with parameters and default values.
+
+    Parameters
+    ----------
+    bar : str
+        This is very bar.
+    baz : str, default='spam'
+        This is totally baz.
+    qux : int, default=42
+        Amazingly qux.
+    spam : bool, default=True
+        Surprisingly healthy.
+    eggs : Union[Sequence, NoneType], default=None
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+# TODO var args
+# TODO var kwargs
 # TODO yields section
 # TODO receives section
 # TODO raises section
