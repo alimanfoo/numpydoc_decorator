@@ -1,1 +1,1 @@
-from .impl import doc, DocumentationError
+from .impl import DocumentationError, doc  # noqa
