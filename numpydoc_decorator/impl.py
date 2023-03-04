@@ -29,7 +29,9 @@ def format_parameters(parameters, sig):
     docstring = ""
     # display parameters in order given in function signature
     for param_name, param in sig.parameters.items():
-        docstring += param_name.strip()
+        if param_name == "self":
+            continue
+        docstring += param_name
         if param.annotation is not Parameter.empty:
             docstring += f" : {format_type(param.annotation)}"
         docstring += newline
@@ -138,7 +140,7 @@ def doc(
         # check parameters against function signature
         sig = signature(f)
         for e in sig.parameters:
-            if e not in parameters:
+            if e != "self" and e not in parameters:
                 raise DocumentationError(f"Parameter {e} not documented.")
         for g in parameters:
             if g not in sig.parameters:
