@@ -613,13 +613,15 @@ def test_method():
 
 
 # TODO default values
-# TODO yields
-# TODO receives
-# TODO raises
-# TODO warns
-# TODO warnings
-# TODO see also
-# TODO notes
-# TODO references
-# TODO examples
+# TODO yields section
+# TODO receives section
+# TODO raises section
+# TODO warns section
+# TODO warnings section
+# TODO see also section
+# TODO notes section
+# TODO references section
+# TODO examples section
+# TODO test numpydoc example
+# TODO test some real numpy functions
 # TODO README examples, checked via CI somehow
