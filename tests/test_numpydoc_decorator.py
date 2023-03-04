@@ -571,7 +571,47 @@ def test_extended_summary():
     compare(actual, expected)
 
 
-# TODO methods
+def test_method():
+    class Foo:
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A method with simple parameters.",
+            parameters={
+                "bar": "This is very bar.",
+                "baz": "This is totally baz.",
+            },
+            returns={
+                "qux": "Amazingly qux.",
+            },
+        )
+        def m(self, bar, baz):
+            pass
+
+    foo = Foo()
+
+    expected = cleandoc(
+        """
+    A method with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(Foo.m)
+    compare(actual, expected)
+    actual = getdoc(foo.m)
+    compare(actual, expected)
+
+
 # TODO default values
 # TODO yields
 # TODO receives
