@@ -1,10 +1,16 @@
+import sys
 from inspect import cleandoc, getdoc
-from typing import Dict, Sequence, Tuple, Union
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import pytest
 from testfixtures import compare
 
 from numpydoc_decorator import DocumentationError, doc
+
+# compat code to handle different representation of Optional in 3.7
+PY37 = False
+if sys.version_info.major == 3 and sys.version_info.minor == 7:
+    PY37 = True
 
 
 def test_basic():
@@ -667,12 +673,17 @@ def test_parameter_defaults_typed():
         baz: str = "spam",
         qux: int = 42,
         spam: bool = True,
-        eggs: Union[Sequence, None] = None,
+        eggs: Optional[Sequence] = None,
     ):
         pass
 
+    if PY37:
+        expected_eggs_type = "Union[Sequence, NoneType]"
+    else:
+        expected_eggs_type = "Optional[Sequence]"
+
     expected = cleandoc(
-        """
+        f"""
     A function with parameters and default values.
 
     Parameters
@@ -685,7 +696,7 @@ def test_parameter_defaults_typed():
         Amazingly qux.
     spam : bool, default=True
         Surprisingly healthy.
-    eggs : Union[Sequence, NoneType], default=None
+    eggs : {expected_eggs_type}, default=None
         Good on toast.
 
     """
