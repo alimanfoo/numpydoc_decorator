@@ -33,6 +33,12 @@ def format_parameters(parameters, sig):
             # assume this is a method, don't document self parameter
             continue
 
+        # add markers for variable parameters
+        if param.kind == Parameter.VAR_POSITIONAL:
+            docstring += "*"
+        elif param.kind == Parameter.VAR_KEYWORD:
+            docstring += "**"
+
         # add parameter name
         docstring += param_name
 
