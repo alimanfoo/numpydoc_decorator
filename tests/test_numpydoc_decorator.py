@@ -700,8 +700,108 @@ def test_parameter_defaults_typed():
     compare(actual, expected)
 
 
-# TODO var args
-# TODO var kwargs
+def test_var_args_kwargs():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with variable parameters.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "args": "Anything else you feel like.",
+            "kwargs": "Passed through to somewhere else.",
+        },
+    )
+    def f(bar, baz, *args, **kwargs):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with variable parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+    *args
+        Anything else you feel like.
+    **kwargs
+        Passed through to somewhere else.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_var_args_kwargs_names():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with variable parameters.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "arguments": "Anything else you feel like.",
+            "keyword_arguments": "Passed through to somewhere else.",
+        },
+    )
+    def f(bar, baz, *arguments, **keyword_arguments):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with variable parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+    *arguments
+        Anything else you feel like.
+    **keyword_arguments
+        Passed through to somewhere else.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_keyword_only_args():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with keyword only args.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "qux": "Amazingly qux.",
+        },
+    )
+    def f(bar, *, baz, qux):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with keyword only args.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+    qux
+        Amazingly qux.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
 # TODO yields section
 # TODO receives section
 # TODO raises section
