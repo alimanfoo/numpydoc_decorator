@@ -1,5 +1,6 @@
+import sys
 from inspect import cleandoc, getdoc
-from typing import Dict, Sequence, Tuple, Union
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import pytest
 from testfixtures import compare
@@ -612,7 +613,95 @@ def test_method():
     compare(actual, expected)
 
 
-# TODO default values
+def test_parameter_defaults():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with parameters and default values.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "qux": "Amazingly qux.",
+            "spam": "Surprisingly healthy.",
+            "eggs": "Good on toast.",
+        },
+    )
+    def f(bar, baz="spam", qux=42, spam=True, eggs=None):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with parameters and default values.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz, default='spam'
+        This is totally baz.
+    qux, default=42
+        Amazingly qux.
+    spam, default=True
+        Surprisingly healthy.
+    eggs, default=None
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+def test_parameter_defaults_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with parameters and default values.",
+        parameters={
+            "bar": "This is very bar.",
+            "baz": "This is totally baz.",
+            "qux": "Amazingly qux.",
+            "spam": "Surprisingly healthy.",
+            "eggs": "Good on toast.",
+        },
+    )
+    def f(
+        bar: str,
+        baz: str = "spam",
+        qux: int = 42,
+        spam: bool = True,
+        eggs: Optional[Sequence] = None,
+    ):
+        pass
+
+    if sys.version_info.major == 3 and sys.version_info.minor < 9:
+        expected_eggs_type = "Union[Sequence, NoneType]"
+    else:
+        expected_eggs_type = "Optional[Sequence]"
+
+    expected = cleandoc(
+        f"""
+    A function with parameters and default values.
+
+    Parameters
+    ----------
+    bar : str
+        This is very bar.
+    baz : str, default='spam'
+        This is totally baz.
+    qux : int, default=42
+        Amazingly qux.
+    spam : bool, default=True
+        Surprisingly healthy.
+    eggs : {expected_eggs_type}, default=None
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(f)
+    compare(actual, expected)
+
+
+# TODO var args
+# TODO var kwargs
 # TODO yields section
 # TODO receives section
 # TODO raises section
