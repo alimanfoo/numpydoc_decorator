@@ -19,6 +19,6 @@ Work in progress.
 `pip install numpydoc_decorator`
 
 
-## Examples
+## Usage
 
 @@TODO
