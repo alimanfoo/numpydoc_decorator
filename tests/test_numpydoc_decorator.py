@@ -7,11 +7,6 @@ from testfixtures import compare
 
 from numpydoc_decorator import DocumentationError, doc
 
-# compat code to handle different representation of Optional in 3.7
-PY37 = False
-if sys.version_info.major == 3 and sys.version_info.minor == 7:
-    PY37 = True
-
 
 def test_basic():
     # noinspection PyUnusedLocal
@@ -677,7 +672,7 @@ def test_parameter_defaults_typed():
     ):
         pass
 
-    if PY37:
+    if sys.version_info.major == 3 and sys.version_info.minor < 9:
         expected_eggs_type = "Union[Sequence, NoneType]"
     else:
         expected_eggs_type = "Optional[Sequence]"
