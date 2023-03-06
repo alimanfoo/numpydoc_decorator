@@ -1685,7 +1685,6 @@ def test_examples():
 
 
 # TODO receives section
-# TODO sends section
 # TODO test numpydoc example
 # TODO test some real numpy functions
 # TODO README examples, checked via CI somehow
