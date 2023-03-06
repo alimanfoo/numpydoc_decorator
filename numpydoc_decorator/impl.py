@@ -18,12 +18,12 @@ class DocumentationError(Exception):
     pass
 
 
-def para(s):
+def format_paragraph(s):
     return fill(dedent(s.strip())) + newline
 
 
-def indent_para(s):
-    return indent(para(s), prefix="    ")
+def format_indented_paragraph(s):
+    return indent(format_paragraph(s), prefix="    ")
 
 
 def format_parameters(parameters, sig):
@@ -58,7 +58,7 @@ def format_parameters(parameters, sig):
         # add parameter description
         docstring += newline
         param_doc = parameters[param_name]
-        docstring += indent_para(param_doc)
+        docstring += format_indented_paragraph(param_doc)
 
     return docstring
 
@@ -84,11 +84,11 @@ def format_returns(returns, sig):
 def format_returns_unnamed(returns, return_annotation):
     if return_annotation is Parameter.empty:
         # just assume it's a description of the return value
-        docstring = para(returns)
+        docstring = format_paragraph(returns)
     else:
         # provide the type
         docstring = format_type(return_annotation) + newline
-        docstring += indent_para(returns)
+        docstring += format_indented_paragraph(returns)
     docstring += newline
     return docstring
 
@@ -129,7 +129,7 @@ def format_returns_named(returns, return_annotation):
         if return_type is not Parameter.empty:
             docstring += f" : {format_type(return_type)}"
         docstring += newline
-        docstring += indent_para(return_doc)
+        docstring += format_indented_paragraph(return_doc)
     docstring += newline
 
     return docstring
@@ -173,6 +173,14 @@ def format_yields(yields, sig):
         raise TypeError("yields must be str or Mapping")
 
 
+def format_raises(raises):
+    docstring = ""
+    for error, description in raises.items():
+        docstring += error + newline
+        docstring += format_indented_paragraph(description)
+    return docstring
+
+
 def doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
@@ -181,7 +189,60 @@ def doc(
     returns: Optional[Union[str, Mapping[str, str]]] = None,
     yields: Optional[Union[str, Mapping[str, str]]] = None,
     other_parameters: Optional[Mapping[str, str]] = None,
+    raises: Optional[Mapping[str, str]] = None,
+    warns: Optional[Mapping[str, str]] = None,
+    warnings: Optional[str] = None,
 ):
+    """Provide documentation for a function or method, to be formatted as a
+    numpy-style docstring (numpydoc).
+
+    Parameters
+    ----------
+    summary : str
+        A one-line summary that does not use variable names or the function name.
+    deprecation : Mapping[str, str], optional
+        Warn users that the object is deprecated. Should include `version` and
+        `reason` keys.
+    extended_summary : str, optional
+        A few sentences giving an extended description.
+    parameters : Mapping[str, str], optional
+        Description of the function arguments and keywords. Note that types will
+        be obtained from the function's type annotations and do not need to be
+        provided here.
+    returns : str or Mapping[str, str], optional
+        Explanation of the returned values. Note that types will be obtained from
+        the function's return annotation and do not need to be provided here.
+    yields : str or Mapping[str, str], optional
+        Explanation of the yielded values. Note that types will be obtained from
+        the function's return annotation and do not need to be provided here.
+        This is relevant to generators only.
+    other_parameters : Mapping[str, str], optional
+        An optional section used to describe infrequently used parameters. It
+        should only be used if a function has a large number of keyword
+        parameters, to prevent cluttering the Parameters section.
+    raises : Mapping[str, str], optional
+        An optional section detailing which errors get raised and under what
+        conditions.
+    warns : Mapping[str, str], optional
+        An optional section detailing which warnings get raised and under what
+        conditions.
+    warnings : str, optional
+        An optional section with cautions to the user in free text/reST.
+
+    Returns
+    -------
+    decorator
+        A decorator function which can be applied to a function that you want
+        to document.
+
+    Raises
+    ------
+    DocumentationError
+        An error is raised if there are any problems with the provided documentation,
+        such as missing parameters or parameters not consistent with the
+        function's type annotations.
+
+    """
     if parameters is None:
         parameters = dict()
     if other_parameters is None:
@@ -214,18 +275,18 @@ def doc(
 
         # add summary
         if summary:
-            docstring += para(summary)
+            docstring += format_paragraph(summary)
             docstring += newline
 
         # add deprecation warning
         if deprecation:
             docstring += f".. deprecated:: {deprecation['version']}" + newline
-            docstring += indent_para(deprecation["reason"])
+            docstring += format_indented_paragraph(deprecation["reason"])
             docstring += newline
 
         # add extended summary
         if extended_summary:
-            docstring += para(extended_summary)
+            docstring += format_paragraph(extended_summary)
             docstring += newline
 
         # add parameters section
@@ -254,21 +315,25 @@ def doc(
             docstring += format_parameters(other_parameters, sig)
             docstring += newline
 
-        # TODO receives
+        # add raises section
+        if raises:
+            docstring += "Raises" + newline
+            docstring += "------" + newline
+            docstring += format_raises(raises)
+            docstring += newline
 
-        # TODO raises
+        # add warns section
+        if warns:
+            docstring += "Warns" + newline
+            docstring += "-----" + newline
+            docstring += format_raises(warns)
+            docstring += newline
 
-        # TODO warns
-
-        # TODO warnings
-
-        # TODO see also
-
-        # TODO notes
-
-        # TODO references
-
-        # TODO examples
+        if warnings:
+            docstring += "Warnings" + newline
+            docstring += "--------" + newline
+            docstring += format_paragraph(warnings)
+            docstring += newline
 
         # final cleanup
         docstring = cleandoc(docstring)
