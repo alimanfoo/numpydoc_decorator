@@ -1481,7 +1481,7 @@ def test_notes():
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
             The value of :math:`\omega` is larger than 5.
-        """,
+        """,  # noqa
     )
     def foo(bar, baz):
         pass
@@ -1586,7 +1586,104 @@ def test_references():
     compare(actual, expected)
 
 
-# TODO examples section
+def test_examples():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        examples="""
+            These are written in doctest format, and should illustrate how to use the function.
+
+            >>> a = [1, 2, 3]
+            >>> print([x + 3 for x in a])
+            [4, 5, 6]
+            >>> print("a\\nb")
+            a
+            b
+
+            Here are some more examples.
+
+            >>> np.add(1, 2)
+            3
+
+            Comment explaining the second example.
+
+            >>> np.add([1, 2], [3, 4])
+            array([4, 6])
+
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+            >>> np.add([[1, 2], [3, 4]], [[5, 6], [7, 8]])
+            array([[ 6,  8],
+                   [10, 12]])
+
+        """,  # noqa
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    Examples
+    --------
+    These are written in doctest format, and should illustrate how to use
+    the function.
+
+    >>> a = [1, 2, 3]
+    >>> print([x + 3 for x in a])
+    [4, 5, 6]
+    >>> print("a\\nb")
+    a
+    b
+
+    Here are some more examples.
+
+    >>> np.add(1, 2)
+    3
+
+    Comment explaining the second example.
+
+    >>> np.add([1, 2], [3, 4])
+    array([4, 6])
+
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+    minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+    aliquip ex ea commodo consequat. Duis aute irure dolor in
+    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+    culpa qui officia deserunt mollit anim id est laborum.
+
+    >>> np.add([[1, 2], [3, 4]], [[5, 6], [7, 8]])
+    array([[ 6,  8],
+           [10, 12]])
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
 # TODO receives section
 # TODO sends section
 # TODO test numpydoc example

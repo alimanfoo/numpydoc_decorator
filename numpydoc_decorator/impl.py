@@ -256,6 +256,7 @@ def doc(
     see_also: Optional[Union[str, Sequence[str], Mapping[str, str]]] = None,
     notes: Optional[str] = None,
     references: Optional[Mapping[str, str]] = None,
+    examples: Optional[str] = None,
 ):
     """Provide documentation for a function or method, to be formatted as a
     numpy-style docstring (numpydoc).
@@ -300,6 +301,8 @@ def doc(
         include mathematical equations, written in LaTeX format.
     references : Mapping[str, str], optional
         References cited in the Notes section may be listed here.
+    examples : str, optional
+        An optional section for examples, using the doctest format.
 
     Returns
     -------
@@ -427,6 +430,12 @@ def doc(
             docstring += "----------" + newline
             docstring += format_references(references)
             docstring += newline
+
+        # add examples section
+        if examples:
+            docstring += "Examples" + newline
+            docstring += "--------" + newline
+            docstring += format_paragraphs(examples)
 
         # final cleanup
         docstring = cleandoc(docstring)
