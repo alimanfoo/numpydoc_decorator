@@ -35,7 +35,7 @@ from numpydoc_decorator import doc
             and adaptive co-kriging for environmental habitat modelling of the
             Highland Haggis using object-oriented, fuzzy-logic and neural-
             network techniques," Computers & Geosciences, vol. 22, pp. 585-588,
-            1996.'
+            1996.
         """,
     },
     examples="""
