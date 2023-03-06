@@ -2252,6 +2252,3 @@ def test_numpy_mean():
 
     actual = getdoc(numpy_mean)
     compare(actual, expected)
-
-
-# TODO README examples, checked via CI somehow
