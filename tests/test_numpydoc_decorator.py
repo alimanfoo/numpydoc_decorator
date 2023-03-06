@@ -1116,6 +1116,144 @@ def test_returns_yields():
             yield "spam", "eggs", "toast"
 
 
+def test_other_parameters():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with other parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        other_parameters=dict(
+            spam="Surprisingly healthy.",
+            eggs="Good on toast.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+    )
+    def foo(bar, baz, spam, eggs):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with other parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    Other Parameters
+    ----------------
+    spam
+        Surprisingly healthy.
+    eggs
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_other_parameters_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with other parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        other_parameters=dict(
+            spam="Surprisingly healthy.",
+            eggs="Good on toast.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+    )
+    def foo(bar: int, baz: str, spam: float, eggs: Tuple[int]) -> bool:
+        pass
+
+    expected = cleandoc(
+        """
+    A function with other parameters.
+
+    Parameters
+    ----------
+    bar : int
+        This is very bar.
+    baz : str
+        This is totally baz.
+
+    Returns
+    -------
+    qux : bool
+        Amazingly qux.
+
+    Other Parameters
+    ----------------
+    spam : float
+        Surprisingly healthy.
+    eggs : Tuple[int]
+        Good on toast.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_extra_other_param():
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            parameters=dict(
+                bar="This is very bar.",
+                baz="This is totally baz.",
+            ),
+            returns=dict(
+                qux="Amazingly qux.",
+            ),
+            other_parameters=dict(
+                spam="Surprisingly healthy.",
+                eggs="Good on toast.",
+            ),
+        )
+        def foo(bar, baz, spam):
+            pass
+
+
+def test_missing_other_param():
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            parameters=dict(
+                bar="This is very bar.",
+                baz="This is totally baz.",
+            ),
+            returns=dict(
+                qux="Amazingly qux.",
+            ),
+            other_parameters=dict(
+                spam="Surprisingly healthy.",
+                # eggs param is missing
+            ),
+        )
+        def foo(bar, baz, spam, eggs):
+            pass
+
+
 # TODO other parameters
 # TODO receives section
 # TODO raises section
