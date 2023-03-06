@@ -1,6 +1,7 @@
+from collections.abc import Iterable
 from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Mapping, Optional, Union
+from typing import Generator, Iterator, Mapping, Optional, Union
 
 try:
     from typing import get_args as typing_get_args
@@ -126,12 +127,97 @@ def format_returns_named(returns, sig):
     return docstring
 
 
+def format_yields(yields, sig):
+    if isinstance(yields, str):
+        return format_yields_simple(yields, sig)
+    elif isinstance(yields, Mapping):
+        return format_yields_named(yields, sig)
+    else:
+        raise TypeError("yields must be str or Mapping")
+
+
+def format_yields_simple(yields, sig):
+    return_type = sig.return_annotation
+    if return_type is Parameter.empty:
+        # just assume it's a description of the return value
+        docstring = para(yields)
+    else:
+        # check the type is compatible with yields
+        return_type_origin = typing_get_origin(return_type)
+        if return_type_origin not in [Generator, Iterator, Iterable]:
+            # TODO test this
+            raise DocumentationError(
+                f"return annotation {return_type_origin!r} is not compatible with yields"
+            )
+
+        # provide the inner type
+        yield_types = typing_get_args(return_type)
+
+        # add yield type information
+        if len(yield_types) == 0:
+            # no inner type information
+            docstring = para(yields)
+
+        elif len(yield_types) == 1:
+            yield_type = yield_types[0]
+            docstring = format_type(yield_type) + newline
+            docstring += indent_para(yields)
+
+        elif len(yield_types) > 1:
+            # TODO test this
+            docstring = (
+                f"({', '.join([format_type(t) for t in yield_types])})" + newline
+            )
+            docstring += indent_para(yields)
+
+    docstring += newline
+    return docstring
+
+
+def format_yields_named(yields, sig):
+    docstring = ""
+    return_annotation = sig.return_annotation
+
+    # handle possibility of multiple return values
+    if typing_get_origin(return_annotation) is tuple:
+        typing_args = typing_get_args(return_annotation)
+        if Ellipsis in typing_args:
+            # treat as a single return value
+            return_types = [return_annotation]
+        else:
+            # treat as multiple return values
+            return_types = typing_args
+    elif return_annotation is Parameter.empty:
+        # trust the documentation regarding number of return values
+        return_types = [Parameter.empty] * len(yields)
+    else:
+        # assume a single return value
+        return_types = [return_annotation]
+
+    if len(yields) > len(return_types):
+        raise DocumentationError("more return values documented than types")
+
+    if len(yields) < len(return_types):
+        raise DocumentationError("more return types than values documented")
+
+    for (return_name, return_doc), return_type in zip(yields.items(), return_types):
+        docstring += return_name.strip()
+        if return_type is not Parameter.empty:
+            docstring += f" : {format_type(return_type)}"
+        docstring += newline
+        docstring += indent_para(return_doc)
+    docstring += newline
+
+    return docstring
+
+
 def doc(
     summary: str = None,
     deprecation: Optional[Mapping[str, str]] = None,
     extended_summary: Optional[str] = None,
     parameters: Optional[Mapping[str, str]] = None,
     returns: Optional[Union[str, Mapping[str, str]]] = None,
+    yields: Optional[Union[str, Mapping[str, str]]] = None,
 ):
     if parameters is None:
         parameters = dict()
@@ -166,18 +252,24 @@ def doc(
                     f"Parameter {g} not found in function signature."
                 )
 
+        # add parameters section
         if sig.parameters:
             docstring += "Parameters" + newline
             docstring += "----------" + newline
             docstring += format_parameters(parameters, sig)
             docstring += newline
 
+        # add returns section
         if returns:
             docstring += "Returns" + newline
             docstring += "-------" + newline
             docstring += format_returns(returns, sig)
 
-        # TODO yields
+        # add yields section
+        if yields:
+            docstring += "Yields" + newline
+            docstring += "------" + newline
+            docstring += format_yields(yields, sig)
 
         # TODO receives
 
