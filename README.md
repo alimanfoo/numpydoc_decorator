@@ -1,6 +1,6 @@
 # numpydoc_decorator
 
-This package allows you to build numpy-style docstrings
+This package allows you to build [numpy-style docstrings](https://numpydoc.readthedocs.io/en/latest/format.html#sections)
 programmatically and apply them using a decorator. This can be useful
 because:
 
