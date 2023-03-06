@@ -1254,8 +1254,6 @@ def test_missing_other_param():
             pass
 
 
-# TODO other parameters
-# TODO receives section
 # TODO raises section
 # TODO warns section
 # TODO warnings section
@@ -1263,6 +1261,8 @@ def test_missing_other_param():
 # TODO notes section
 # TODO references section
 # TODO examples section
+# TODO receives section
+# TODO sends section
 # TODO test numpydoc example
 # TODO test some real numpy functions
 # TODO README examples, checked via CI somehow
