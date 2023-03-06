@@ -1456,7 +1456,80 @@ def test_see_also_mapping():
     compare(actual, expected)
 
 
-# TODO notes section
+def test_notes():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        notes=r"""
+            The FFT is a fast implementation of the discrete Fourier transform:
+
+            .. math:: X(e^{j\omega } ) = x(n)e^{ - j\omega n}
+
+            The discrete-time Fourier time-convolution property states that
+
+            .. math::
+
+                 x(n) * y(n) \Leftrightarrow X(e^{j\omega } )Y(e^{j\omega } )
+
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+            The value of :math:`\omega` is larger than 5.
+        """,
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        r"""
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    Notes
+    -----
+    The FFT is a fast implementation of the discrete Fourier transform:
+
+    .. math:: X(e^{j\omega } ) = x(n)e^{ - j\omega n}
+
+    The discrete-time Fourier time-convolution property states that
+
+    .. math::
+
+         x(n) * y(n) \Leftrightarrow X(e^{j\omega } )Y(e^{j\omega } )
+
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+    minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+    aliquip ex ea commodo consequat. Duis aute irure dolor in
+    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+    culpa qui officia deserunt mollit anim id est laborum.
+
+    The value of :math:`\omega` is larger than 5.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
 # TODO references section
 # TODO examples section
 # TODO receives section
