@@ -28,20 +28,20 @@ def format_indented_paragraph(s):
 
 def format_paragraphs(s):
     prep = dedent(s.strip(newline))
-    parts = prep.split("\n\n")
+    paragraphs = prep.split("\n\n")
     docstring = ""
-    for part in parts:
+    for paragraph in paragraphs:
         if (
-            part.startswith(" ")
-            or part.startswith("..")
-            or part.startswith(">")
-            or part.startswith("[")
+            paragraph.startswith(" ")
+            or paragraph.startswith("..")
+            or paragraph.startswith(">")
+            or paragraph.startswith("[")
         ):
             # leave this as-is
-            docstring += part + newline + newline
+            docstring += paragraph + newline + newline
         else:
             # fill
-            docstring += fill(part) + newline + newline
+            docstring += fill(paragraph) + newline + newline
     return docstring
 
 
