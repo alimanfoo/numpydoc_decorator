@@ -1586,7 +1586,6 @@ def test_references():
     compare(actual, expected)
 
 
-# TODO references section
 # TODO examples section
 # TODO receives section
 # TODO sends section
