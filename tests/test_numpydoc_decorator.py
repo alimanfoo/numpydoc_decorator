@@ -1530,6 +1530,62 @@ def test_notes():
     compare(actual, expected)
 
 
+def test_references():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        notes="""
+            The algorithm is cool and is described in [1]_ and [CIT2002]_.
+        """,
+        references={
+            "1": 'O. McNoleg, "The integration of GIS, remote sensing, expert systems and adaptive co-kriging for environmental habitat modelling of the Highland Haggis using object-oriented, fuzzy-logic and neural-network techniques," Computers & Geosciences, vol. 22, pp. 585-588, 1996.',  # noqa
+            "CIT2002": "Book or article reference, URL or whatever.",
+        },
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    Notes
+    -----
+    The algorithm is cool and is described in [1]_ and [CIT2002]_.
+
+    References
+    ----------
+    .. [1] O. McNoleg, "The integration of GIS, remote sensing, expert systems
+        and adaptive co-kriging for environmental habitat modelling of the
+        Highland Haggis using object-oriented, fuzzy-logic and neural-network
+        techniques," Computers & Geosciences, vol. 22, pp. 585-588, 1996.
+    .. [CIT2002] Book or article reference, URL or whatever.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
 # TODO references section
 # TODO examples section
 # TODO receives section

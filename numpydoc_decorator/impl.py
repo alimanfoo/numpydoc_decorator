@@ -28,7 +28,7 @@ def format_indented_paragraph(s):
 
 def format_paragraphs(s):
     prep = dedent(s.strip(newline))
-    paragraphs = prep.split("\n\n")
+    paragraphs = prep.split(newline + newline)
     docstring = ""
     for paragraph in paragraphs:
         if (
@@ -233,6 +233,15 @@ def format_see_also(see_also):
         return docstring
 
 
+def format_references(references):
+    docstring = ""
+    for ref, desc in references.items():
+        docstring += f".. [{ref}] "
+        desc = format_indented_paragraph(desc).strip()
+        docstring += desc + newline
+    return docstring
+
+
 def doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
@@ -246,6 +255,7 @@ def doc(
     warnings: Optional[str] = None,
     see_also: Optional[Union[str, Sequence[str], Mapping[str, str]]] = None,
     notes: Optional[str] = None,
+    references: Optional[Mapping[str, str]] = None,
 ):
     """Provide documentation for a function or method, to be formatted as a
     numpy-style docstring (numpydoc).
@@ -288,6 +298,8 @@ def doc(
         An optional section that provides additional information about the code,
         possibly including a discussion of the algorithm. This section may
         include mathematical equations, written in LaTeX format.
+    references : Mapping[str, str], optional
+        References cited in the Notes section may be listed here.
 
     Returns
     -------
@@ -408,6 +420,12 @@ def doc(
             docstring += "Notes" + newline
             docstring += "-----" + newline
             docstring += format_paragraphs(notes)
+
+        # add references section
+        if references:
+            docstring += "References" + newline
+            docstring += "----------" + newline
+            docstring += format_references(references)
             docstring += newline
 
         # final cleanup
