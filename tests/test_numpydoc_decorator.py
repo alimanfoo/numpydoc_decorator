@@ -1,6 +1,6 @@
 import sys
 from inspect import cleandoc, getdoc
-from typing import Dict, Iterable, Optional, Sequence, Tuple, Union
+from typing import Dict, Generator, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
 import pytest
 from testfixtures import compare
@@ -20,7 +20,7 @@ def test_basic():
             "qux": "Amazingly qux.",
         },
     )
-    def f(bar, baz):
+    def foo(bar, baz):
         pass
 
     expected = cleandoc(
@@ -40,7 +40,7 @@ def test_basic():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -56,7 +56,7 @@ def test_long_summary():
             "qux": "Amazingly qux.",
         },
     )
-    def f(bar, baz):
+    def foo(bar, baz):
         pass
 
     expected = cleandoc(
@@ -83,7 +83,7 @@ def test_long_summary():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -99,7 +99,7 @@ def test_long_param_doc():
             "qux": "Amazingly qux.",
         },
     )
-    def f(bar, baz):
+    def foo(bar, baz):
         pass
 
     expected = cleandoc(
@@ -125,7 +125,7 @@ def test_long_param_doc():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -139,7 +139,7 @@ def test_missing_param():
                 # baz parameter is missing
             },
         )
-        def f(bar, baz):
+        def foo(bar, baz):
             pass
 
 
@@ -150,7 +150,7 @@ def test_missing_params():
             summary="A function with simple parameters.",
             # no parameters given at all
         )
-        def f(bar, baz):
+        def foo(bar, baz):
             pass
 
 
@@ -168,7 +168,7 @@ def test_extra_param():
                 "qux": "Amazingly qux.",
             },
         )
-        def f(bar, baz):
+        def foo(bar, baz):
             pass
 
 
@@ -182,7 +182,7 @@ def test_parameter_order():
             "bar": "This is very bar.",
         },
     )
-    def f(bar, baz):
+    def foo(bar, baz):
         pass
 
     expected = cleandoc(
@@ -198,7 +198,7 @@ def test_parameter_order():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -214,7 +214,7 @@ def test_parameter_types():
             "eggs": "Good on toast.",
         },
     )
-    def f(
+    def foo(
         bar: int,
         baz: str,
         qux: Sequence[str],
@@ -242,17 +242,17 @@ def test_parameter_types():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_returns_basic():
+def test_returns_unnamed():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function.",
         returns="Amazingly qux.",
     )
-    def f():
+    def foo():
         return 42
 
     # this isn't strictly kosher as numpydoc demands type is always given
@@ -265,17 +265,17 @@ def test_returns_basic():
     Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_returns_basic_typed():
+def test_returns_unnamed_typed():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function.",
         returns="Amazingly qux.",
     )
-    def f() -> int:
+    def foo() -> int:
         return 42
 
     expected = cleandoc(
@@ -288,7 +288,7 @@ def test_returns_basic_typed():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -299,7 +299,7 @@ def test_returns_named():
             "qux": "Amazingly qux.",
         },
     )
-    def f():
+    def foo():
         return 42
 
     # this isn't strictly kosher as numpydoc demands type is always given
@@ -313,7 +313,7 @@ def test_returns_named():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -325,7 +325,7 @@ def test_returns_named_typed():
             "qux": "Amazingly qux.",
         },
     )
-    def f() -> int:
+    def foo() -> int:
         return 42
 
     expected = cleandoc(
@@ -338,11 +338,11 @@ def test_returns_named_typed():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_returns_multi():
+def test_returns_named_multi():
     @doc(
         summary="A function.",
         returns={
@@ -350,7 +350,7 @@ def test_returns_multi():
             "eggs": "Good on toast.",
         },
     )
-    def f():
+    def foo():
         return "hello", 42
 
     expected = cleandoc(
@@ -366,11 +366,11 @@ def test_returns_multi():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_returns_multi_typed():
+def test_returns_named_multi_typed():
     @doc(
         summary="A function.",
         returns={
@@ -378,7 +378,7 @@ def test_returns_multi_typed():
             "eggs": "Good on toast.",
         },
     )
-    def f() -> Tuple[str, int]:
+    def foo() -> Tuple[str, int]:
         return "hello", 42
 
     expected = cleandoc(
@@ -394,18 +394,18 @@ def test_returns_multi_typed():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_returns_multi_typed_ellipsis():
+def test_returns_named_multi_typed_ellipsis():
     @doc(
         summary="A function.",
         returns={
             "spam": "The more the better.",
         },
     )
-    def f() -> Tuple[str, ...]:
+    def foo() -> Tuple[str, ...]:
         return "spam", "spam", "spam", "spam"
 
     expected = cleandoc(
@@ -419,11 +419,11 @@ def test_returns_multi_typed_ellipsis():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_returns_extra_value():
+def test_returns_extra_name():
     # here there are more return values documented than there are types
     with pytest.raises(DocumentationError):
         # noinspection PyUnusedLocal
@@ -434,11 +434,11 @@ def test_returns_extra_value():
                 "eggs": "Good on toast.",
             },
         )
-        def f() -> str:
+        def foo() -> str:
             return "dinner"
 
 
-def test_returns_extra_values():
+def test_returns_extra_names():
     # here there are more return values documented than there are types
     with pytest.raises(DocumentationError):
         # noinspection PyUnusedLocal
@@ -450,7 +450,7 @@ def test_returns_extra_values():
                 "toast": "Good with eggs.",
             },
         )
-        def f() -> Tuple[str, str]:
+        def foo() -> Tuple[str, str]:
             return "spam", "eggs"
 
 
@@ -464,7 +464,7 @@ def test_returns_extra_type():
                 "spam": "Surprisingly healthy.",
             },
         )
-        def f() -> Tuple[str, str]:
+        def foo() -> Tuple[str, str]:
             return "spam", "eggs"
 
 
@@ -479,7 +479,7 @@ def test_returns_extra_types():
                 "eggs": "Good on toast.",
             },
         )
-        def f() -> Tuple[str, str, str]:
+        def foo() -> Tuple[str, str, str]:
             return "spam", "eggs", "toast"
 
 
@@ -499,7 +499,7 @@ def test_deprecation():
             "qux": "Amazingly qux.",
         },
     )
-    def f(bar, baz):
+    def foo(bar, baz):
         pass
 
     expected = cleandoc(
@@ -523,7 +523,7 @@ def test_deprecation():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -540,7 +540,7 @@ def test_extended_summary():
             "qux": "Amazingly qux.",
         },
     )
-    def f(bar, baz):
+    def foo(bar, baz):
         pass
 
     expected = cleandoc(
@@ -568,7 +568,7 @@ def test_extended_summary():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -625,7 +625,7 @@ def test_parameter_defaults():
             "eggs": "Good on toast.",
         },
     )
-    def f(bar, baz="spam", qux=42, spam=True, eggs=None):
+    def foo(bar, baz="spam", qux=42, spam=True, eggs=None):
         pass
 
     expected = cleandoc(
@@ -647,7 +647,7 @@ def test_parameter_defaults():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -663,7 +663,7 @@ def test_parameter_defaults_typed():
             "eggs": "Good on toast.",
         },
     )
-    def f(
+    def foo(
         bar: str,
         baz: str = "spam",
         qux: int = 42,
@@ -696,7 +696,7 @@ def test_parameter_defaults_typed():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -711,7 +711,7 @@ def test_var_args_kwargs():
             "kwargs": "Passed through to somewhere else.",
         },
     )
-    def f(bar, baz, *args, **kwargs):
+    def foo(bar, baz, *args, **kwargs):
         pass
 
     expected = cleandoc(
@@ -731,7 +731,7 @@ def test_var_args_kwargs():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -746,7 +746,7 @@ def test_var_args_kwargs_names():
             "keyword_arguments": "Passed through to somewhere else.",
         },
     )
-    def f(bar, baz, *arguments, **keyword_arguments):
+    def foo(bar, baz, *arguments, **keyword_arguments):
         pass
 
     expected = cleandoc(
@@ -766,7 +766,7 @@ def test_var_args_kwargs_names():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -780,7 +780,7 @@ def test_keyword_only_args():
             "qux": "Amazingly qux.",
         },
     )
-    def f(bar, *, baz, qux):
+    def foo(bar, *, baz, qux):
         pass
 
     expected = cleandoc(
@@ -798,17 +798,17 @@ def test_keyword_only_args():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_yields_basic():
+def test_yields_unnamed():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function.",
         yields="Amazingly qux.",
     )
-    def f():
+    def foo():
         yield 42
 
     # this isn't strictly kosher as numpydoc demands type is always given
@@ -821,17 +821,17 @@ def test_yields_basic():
     Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_yields_basic_typed_bare():
+def test_yields_unnamed_typed_bare():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function.",
         yields="Amazingly qux.",
     )
-    def f() -> Iterable:
+    def foo() -> Iterable:
         yield 42
 
     expected = cleandoc(
@@ -843,17 +843,18 @@ def test_yields_basic_typed_bare():
     Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_yields_basic_typed_iterable():
-    # noinspection PyUnusedLocal
+@pytest.mark.parametrize("T", [Iterator, Iterable])
+def test_yields_unnamed_typed_iterator(T):
+    # noinspection PyUnresolvedReferences
     @doc(
         summary="A function.",
         yields="Amazingly qux.",
     )
-    def f() -> Iterable[int]:
+    def foo() -> T[int]:
         yield 42
 
     expected = cleandoc(
@@ -866,7 +867,30 @@ def test_yields_basic_typed_iterable():
         Amazingly qux.
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_yields_unnamed_typed_generator():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        yields="Amazingly qux.",
+    )
+    def foo() -> Generator[int, None, None]:
+        yield 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    int
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -874,10 +898,10 @@ def test_yields_named():
     @doc(
         summary="A function.",
         yields={
-            "qux": "Amazingly qux.",
+            "bar": "This is very bar.",
         },
     )
-    def f():
+    def foo():
         return 42
 
     # this isn't strictly kosher as numpydoc demands type is always given
@@ -887,11 +911,12 @@ def test_yields_named():
 
     Yields
     ------
-    qux
-        Amazingly qux.
+    bar
+        This is very bar.
+
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
@@ -900,11 +925,11 @@ def test_yields_named_typed():
     @doc(
         summary="A function.",
         yields={
-            "qux": "Amazingly qux.",
+            "bar": "This is very bar.",
         },
     )
-    def f() -> int:
-        return 42
+    def foo() -> Iterable[int]:
+        yield 42
 
     expected = cleandoc(
         """
@@ -912,15 +937,16 @@ def test_yields_named_typed():
 
     Yields
     ------
-    qux : int
-        Amazingly qux.
+    bar : int
+        This is very bar.
+
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_yields_multi():
+def test_yields_named_multi():
     @doc(
         summary="A function.",
         yields={
@@ -928,8 +954,8 @@ def test_yields_multi():
             "eggs": "Good on toast.",
         },
     )
-    def f():
-        return "hello", 42
+    def foo():
+        yield "hello", 42
 
     expected = cleandoc(
         """
@@ -944,11 +970,11 @@ def test_yields_multi():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_yields_multi_typed():
+def test_yields_named_multi_typed():
     @doc(
         summary="A function.",
         yields={
@@ -956,8 +982,8 @@ def test_yields_multi_typed():
             "eggs": "Good on toast.",
         },
     )
-    def f() -> Tuple[str, int]:
-        return "hello", 42
+    def foo() -> Iterable[Tuple[str, int]]:
+        yield "hello", 42
 
     expected = cleandoc(
         """
@@ -972,19 +998,19 @@ def test_yields_multi_typed():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_yields_multi_typed_ellipsis():
+def test_yields_named_multi_typed_ellipsis():
     @doc(
         summary="A function.",
         yields={
             "spam": "The more the better.",
         },
     )
-    def f() -> Tuple[str, ...]:
-        return "spam", "spam", "spam", "spam"
+    def foo() -> Iterable[Tuple[str, ...]]:
+        yield "spam", "spam", "spam", "spam"
 
     expected = cleandoc(
         """
@@ -997,12 +1023,12 @@ def test_yields_multi_typed_ellipsis():
 
     """
     )
-    actual = getdoc(f)
+    actual = getdoc(foo)
     compare(actual, expected)
 
 
-def test_yields_extra_value():
-    # here there are more return values documented than there are types
+def test_yields_extra_name():
+    # here there are more yield values documented than there are types
     with pytest.raises(DocumentationError):
         # noinspection PyUnusedLocal
         @doc(
@@ -1012,12 +1038,12 @@ def test_yields_extra_value():
                 "eggs": "Good on toast.",
             },
         )
-        def f() -> str:
-            return "dinner"
+        def foo() -> Iterable[str]:
+            yield "dinner"
 
 
-def test_yields_extra_values():
-    # here there are more return values documented than there are types
+def test_yields_extra_names():
+    # here there are more yield values documented than there are types
     with pytest.raises(DocumentationError):
         # noinspection PyUnusedLocal
         @doc(
@@ -1028,12 +1054,12 @@ def test_yields_extra_values():
                 "toast": "Good with eggs.",
             },
         )
-        def f() -> Tuple[str, str]:
-            return "spam", "eggs"
+        def foo() -> Iterable[Tuple[str, str]]:
+            yield "spam", "eggs"
 
 
 def test_yields_extra_type():
-    # here there are more return types than return values documented
+    # here there are more yield types than yield values documented
     with pytest.raises(DocumentationError):
         # noinspection PyUnusedLocal
         @doc(
@@ -1042,12 +1068,12 @@ def test_yields_extra_type():
                 "spam": "Surprisingly healthy.",
             },
         )
-        def f() -> Tuple[str, str]:
-            return "spam", "eggs"
+        def foo() -> Iterable[Tuple[str, str]]:
+            yield "spam", "eggs"
 
 
 def test_yields_extra_types():
-    # here there are more return types than return values documented
+    # here there are more yield types than yield values documented
     with pytest.raises(DocumentationError):
         # noinspection PyUnusedLocal
         @doc(
@@ -1057,13 +1083,40 @@ def test_yields_extra_types():
                 "eggs": "Good on toast.",
             },
         )
-        def f() -> Tuple[str, str, str]:
-            return "spam", "eggs", "toast"
+        def foo() -> Iterable[Tuple[str, str, str]]:
+            yield "spam", "eggs", "toast"
+
+
+def test_yields_bad_type():
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            yields={
+                "spam": "Surprisingly healthy.",
+            },
+        )
+        def foo() -> Tuple[str, str]:
+            return "spam", "eggs"
+
+
+def test_returns_yields():
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            returns={
+                "spam": "Surprisingly healthy.",
+            },
+            yields={
+                "spam": "Surprisingly healthy.",
+            },
+        )
+        def foo() -> Iterable[str]:
+            yield "spam", "eggs", "toast"
 
 
 # TODO other parameters
-# TODO yields section
-# TODO yields and returns is an error
 # TODO receives section
 # TODO raises section
 # TODO warns section
