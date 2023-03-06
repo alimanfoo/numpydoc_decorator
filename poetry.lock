@@ -98,7 +98,7 @@ files = [
 name = "numpy"
 version = "1.21.1"
 description = "NumPy is the fundamental package for array computing with Python."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -269,4 +269,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "1cad64ae7cc0676cb8f50ac0e3d33a008077f9308b73bd4f2c4a2f877a0c6cdd"
+content-hash = "a41fcf180306864e60ec94c7f6dc10810444f793c825fc5eebfe3bb0f3f5fa5b"

@@ -9,12 +9,12 @@ packages = [{include = "numpydoc_decorator"}]
 [tool.poetry.dependencies]
 python = "^3.7"
 typing_extensions = "*"
+numpy = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
 pytest-xdist = "*"
 testfixtures = "*"
-numpy = "*"
 
 [build-system]
 requires = ["poetry-core"]

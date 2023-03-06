@@ -3,6 +3,8 @@ from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
 from typing import Mapping, Optional, Sequence, Union
 
+from numpy.typing import ArrayLike, DTypeLike
+
 try:
     from typing import get_args as typing_get_args
     from typing import get_origin as typing_get_origin
@@ -45,6 +47,10 @@ def format_paragraphs(s):
     return docstring
 
 
+def format_indented_paragraphs(s):
+    return indent(format_paragraphs(s), prefix="    ")
+
+
 def format_parameters(parameters, sig):
     docstring = ""
     # display parameters in order given in function signature
@@ -72,23 +78,51 @@ def format_parameters(parameters, sig):
 
         # handle default value
         if param.default is not Parameter.empty:
-            docstring += f", default={param.default!r}"
+            docstring += ", optional"
+            if param.default is not None:
+                docstring += f", default={param.default!r}"
 
         # add parameter description
         docstring += newline
         param_doc = parameters[param_name]
-        docstring += format_indented_paragraph(param_doc)
+        docstring += format_indented_paragraphs(param_doc).strip(newline)
+        docstring += newline
 
     return docstring
 
 
 def format_type(t):
     # This is probably a bit hacky, could be improved.
-    s = repr(t)
-    if s.startswith("<class"):
-        s = t.__name__
-    s = s.replace("typing.", "")
-    return s
+
+    if t == type(None):  # noqa
+        return "None"
+
+    elif t == ArrayLike:
+        return "array_like"
+
+    elif t == Optional[ArrayLike]:
+        return "array_like or None"
+
+    elif t == DTypeLike:
+        return "data-type"
+
+    elif t == Optional[DTypeLike]:
+        return "data-type or None"
+
+    # special handling for union types
+    elif typing_get_origin(t) == Union and typing_get_args(t):
+        return " or ".join([format_type(x) for x in typing_get_args(t)])
+
+    elif typing_get_origin(t) == Optional and typing_get_args(t):
+        x = typing_get_args(t)[0]
+        return format_type(x) + " or None"
+
+    else:
+        s = repr(t)
+        if s.startswith("<class"):
+            s = t.__name__
+        s = s.replace("typing.", "")
+        return s
 
 
 def format_returns(returns, sig):
