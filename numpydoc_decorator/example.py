@@ -14,6 +14,7 @@ from numpydoc_decorator import doc
     """,
     parameters=dict(
         name="The name of the person to greet.",
+        language="The language in which to greet as an ISO 639-1 code.",
     ),
     returns=dict(
         greeting="A pleasant greeting.",
@@ -21,7 +22,6 @@ from numpydoc_decorator import doc
     raises=dict(
         NotImplementedError="If the requested language has not been implemented yet.",
     ),
-    warns=dict(),
     see_also=dict(
         print="You could use this function to print your greeting.",
     ),
@@ -30,7 +30,13 @@ from numpydoc_decorator import doc
         like something to talk about next, you could try [1]_.
     """,
     references={
-        "1": "",
+        "1": """
+            O. McNoleg, "The integration of GIS, remote sensing, expert systems
+            and adaptive co-kriging for environmental habitat modelling of the
+            Highland Haggis using object-oriented, fuzzy-logic and neural-
+            network techniques," Computers & Geosciences, vol. 22, pp. 585-588,
+            1996.'
+        """,
     },
     examples="""
         Here is how to greet a friend in English:
@@ -38,9 +44,9 @@ from numpydoc_decorator import doc
         >>> print(greet("Ford Prefect"))
         Hello Ford Prefect!
 
-        Here is how to greet someone in French:
+        Here is how to greet someone in another language:
 
-        >>> print(greet("Tricia MacMillan"))
+        >>> print(greet("Tricia MacMillan", language="fr"))
         Salut Tricia MacMillan!
 
     """,

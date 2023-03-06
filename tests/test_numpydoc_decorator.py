@@ -2252,3 +2252,70 @@ def test_numpy_mean():
 
     actual = getdoc(numpy_mean)
     compare(actual, expected)
+
+
+def test_example():
+    from numpydoc_decorator.example import greet
+
+    expected = cleandoc(
+        """
+    This function will say hello.
+
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+    minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+    aliquip ex ea commodo consequat. Duis aute irure dolor in
+    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+    culpa qui officia deserunt mollit anim id est laborum.
+
+    Parameters
+    ----------
+    name : str
+        The name of the person to greet.
+    language : str, optional, default='en'
+        The language in which to greet as an ISO 639-1 code.
+
+    Returns
+    -------
+    greeting : str
+        A pleasant greeting.
+
+    Raises
+    ------
+    NotImplementedError
+        If the requested language has not been implemented yet.
+
+    See Also
+    --------
+    print : You could use this function to print your greeting.
+
+    Notes
+    -----
+    This function is useful when greeting someone else. If you would like
+    something to talk about next, you could try [1]_.
+
+    References
+    ----------
+    .. [1] O. McNoleg, "The integration of GIS, remote sensing, expert systems
+        and adaptive co-kriging for environmental habitat modelling of the
+        Highland Haggis using object-oriented, fuzzy-logic and neural- network
+        techniques," Computers & Geosciences, vol. 22, pp. 585-588, 1996.'
+
+    Examples
+    --------
+    Here is how to greet a friend in English:
+
+    >>> print(greet("Ford Prefect"))
+    Hello Ford Prefect!
+
+    Here is how to greet someone in another language:
+
+    >>> print(greet("Tricia MacMillan", language="fr"))
+    Salut Tricia MacMillan!
+
+    """
+    )
+
+    actual = getdoc(greet)
+    compare(actual, expected)
