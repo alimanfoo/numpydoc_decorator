@@ -1,8 +1,9 @@
-import sys
 from inspect import cleandoc, getdoc
 from typing import Dict, Generator, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
+import numpy
 import pytest
+from numpy.typing import ArrayLike, DTypeLike
 from testfixtures import compare
 
 from numpydoc_decorator import DocumentationError, doc
@@ -235,7 +236,7 @@ def test_parameter_types():
         This is totally baz.
     qux : Sequence[str]
         Many strings.
-    spam : Union[list, str]
+    spam : list or str
         You'll love it.
     eggs : Dict[str, Sequence]
         Good with spam.
@@ -636,13 +637,13 @@ def test_parameter_defaults():
     ----------
     bar
         This is very bar.
-    baz, default='spam'
+    baz, optional, default='spam'
         This is totally baz.
-    qux, default=42
+    qux, optional, default=42
         Amazingly qux.
-    spam, default=True
+    spam, optional, default=True
         You'll love it.
-    eggs, default=None
+    eggs, optional
         Good with spam.
 
     """
@@ -672,26 +673,21 @@ def test_parameter_defaults_typed():
     ):
         pass
 
-    if sys.version_info.major == 3 and sys.version_info.minor < 9:
-        expected_eggs_type = "Union[Sequence, NoneType]"
-    else:
-        expected_eggs_type = "Optional[Sequence]"
-
     expected = cleandoc(
-        f"""
+        """
     A function with parameters and default values.
 
     Parameters
     ----------
     bar : str
         This is very bar.
-    baz : str, default='spam'
+    baz : str, optional, default='spam'
         This is totally baz.
-    qux : int, default=42
+    qux : int, optional, default=42
         Amazingly qux.
-    spam : bool, default=True
+    spam : bool, optional, default=True
         You'll love it.
-    eggs : {expected_eggs_type}, default=None
+    eggs : Sequence or None, optional
         Good with spam.
 
     """
@@ -2025,6 +2021,301 @@ def test_examples():
     compare(actual, expected)
 
 
-# TODO test numpydoc example
-# TODO test some real numpy functions
-# TODO README examples, checked via CI somehow
+@doc(
+    summary="Compute the arithmetic mean along the specified axis.",
+    extended_summary="""
+        Returns the average of the array elements.  The average is taken over
+        the flattened array by default, otherwise over the specified axis.
+        `float64` intermediate and return values are used for integer inputs.
+    """,
+    parameters=dict(
+        a="""
+            Array containing numbers whose mean is desired. If `a` is not an
+            array, a conversion is attempted.
+        """,
+        axis="""
+            Axis or axes along which the means are computed. The default is to
+            compute the mean of the flattened array.
+
+            .. versionadded:: 1.7.0
+
+            If this is a tuple of ints, a mean is performed over multiple axes,
+            instead of a single axis or all the axes as before.
+        """,
+        dtype="""
+            Type to use in computing the mean.  For integer inputs, the default
+            is `float64`; for floating point inputs, it is the same as the
+            input dtype.
+        """,
+        out="""
+            Alternate output array in which to place the result.  The default
+            is ``None``; if provided, it must have the same shape as the
+            expected output, but the type will be cast if necessary.
+            See :ref:`ufuncs-output-type` for more details.
+        """,
+        keepdims="""
+            If this is set to True, the axes which are reduced are left
+            in the result as dimensions with size one. With this option,
+            the result will broadcast correctly against the input array.
+
+            If the default value is passed, then `keepdims` will not be
+            passed through to the `mean` method of sub-classes of
+            `ndarray`, however any non-default value will be.  If the
+            sub-class' method does not implement `keepdims` any
+            exceptions will be raised.
+        """,
+        where="""
+            Elements to include in the mean. See `~numpy.ufunc.reduce` for details.
+
+            .. versionadded:: 1.20.0
+
+        """,
+    ),
+    returns=dict(
+        m="""
+            If `out=None`, returns a new array containing the mean values,
+            otherwise a reference to the output array is returned.
+        """
+    ),
+    see_also=dict(
+        average="Weighted average",
+        std=None,
+        var=None,
+        nanmean=None,
+        nanstd=None,
+        nanvar=None,
+    ),
+    notes="""
+        The arithmetic mean is the sum of the elements along the axis divided
+        by the number of elements.
+
+        Note that for floating-point input, the mean is computed using the
+        same precision the input has.  Depending on the input data, this can
+        cause the results to be inaccurate, especially for `float32` (see
+        example below).  Specifying a higher-precision accumulator using the
+        `dtype` keyword can alleviate this issue.
+
+        By default, `float16` results are computed using `float32` intermediates
+        for extra precision.
+    """,
+    examples="""
+        >>> a = np.array([[1, 2], [3, 4]])
+        >>> np.mean(a)
+        2.5
+        >>> np.mean(a, axis=0)
+        array([2., 3.])
+        >>> np.mean(a, axis=1)
+        array([1.5, 3.5])
+
+        In single precision, `mean` can be inaccurate:
+
+        >>> a = np.zeros((2, 512 * 512), dtype=np.float32)
+        >>> a[0, :] = 1.0
+        >>> a[1, :] = 0.1
+        >>> np.mean(a)
+        0.54999924
+
+        Computing the mean in float64 is more accurate:
+
+        >>> np.mean(a, dtype=np.float64)
+        0.55000000074505806 # may vary
+
+        Specifying a where argument:
+
+        >>> a = np.array([[5, 9, 13], [14, 10, 12], [11, 15, 19]])
+        >>> np.mean(a)
+        12.0
+        >>> np.mean(a, where=[[True], [False], [False]])
+        9.0
+    """,
+)
+def numpy_mean(
+    a: ArrayLike,
+    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+    dtype: Optional[DTypeLike] = None,
+    out: Optional[numpy.ndarray] = None,
+    keepdims: Optional[bool] = None,
+    *,
+    where: Optional[ArrayLike] = None,
+) -> numpy.ndarray:
+    pass
+
+
+def test_numpy_mean():
+    expected = cleandoc(
+        """
+    Compute the arithmetic mean along the specified axis.
+
+    Returns the average of the array elements.  The average is taken over
+    the flattened array by default, otherwise over the specified axis.
+    `float64` intermediate and return values are used for integer inputs.
+
+    Parameters
+    ----------
+    a : array_like
+        Array containing numbers whose mean is desired. If `a` is not an
+        array, a conversion is attempted.
+    axis : int or Tuple[int, ...] or None, optional
+        Axis or axes along which the means are computed. The default is to
+        compute the mean of the flattened array.
+
+        .. versionadded:: 1.7.0
+
+        If this is a tuple of ints, a mean is performed over multiple axes,
+        instead of a single axis or all the axes as before.
+    dtype : data-type, optional
+        Type to use in computing the mean.  For integer inputs, the default is
+        `float64`; for floating point inputs, it is the same as the input
+        dtype.
+    out : ndarray or None, optional
+        Alternate output array in which to place the result.  The default is
+        ``None``; if provided, it must have the same shape as the expected
+        output, but the type will be cast if necessary. See :ref:`ufuncs-
+        output-type` for more details.
+    keepdims : bool or None, optional
+        If this is set to True, the axes which are reduced are left in the
+        result as dimensions with size one. With this option, the result will
+        broadcast correctly against the input array.
+
+        If the default value is passed, then `keepdims` will not be passed
+        through to the `mean` method of sub-classes of `ndarray`, however any
+        non-default value will be.  If the sub-class' method does not
+        implement `keepdims` any exceptions will be raised.
+    where : array_like or None, optional
+        Elements to include in the mean. See `~numpy.ufunc.reduce` for
+        details.
+
+        .. versionadded:: 1.20.0
+
+    Returns
+    -------
+    m : ndarray
+        If `out=None`, returns a new array containing the mean values,
+        otherwise a reference to the output array is returned.
+
+    See Also
+    --------
+    average : Weighted average
+    std
+    var
+    nanmean
+    nanstd
+    nanvar
+
+    Notes
+    -----
+    The arithmetic mean is the sum of the elements along the axis divided
+    by the number of elements.
+
+    Note that for floating-point input, the mean is computed using the
+    same precision the input has.  Depending on the input data, this can
+    cause the results to be inaccurate, especially for `float32` (see
+    example below).  Specifying a higher-precision accumulator using the
+    `dtype` keyword can alleviate this issue.
+
+    By default, `float16` results are computed using `float32`
+    intermediates for extra precision.
+
+    Examples
+    --------
+    >>> a = np.array([[1, 2], [3, 4]])
+    >>> np.mean(a)
+    2.5
+    >>> np.mean(a, axis=0)
+    array([2., 3.])
+    >>> np.mean(a, axis=1)
+    array([1.5, 3.5])
+
+    In single precision, `mean` can be inaccurate:
+
+    >>> a = np.zeros((2, 512 * 512), dtype=np.float32)
+    >>> a[0, :] = 1.0
+    >>> a[1, :] = 0.1
+    >>> np.mean(a)
+    0.54999924
+
+    Computing the mean in float64 is more accurate:
+
+    >>> np.mean(a, dtype=np.float64)
+    0.55000000074505806 # may vary
+
+    Specifying a where argument:
+
+    >>> a = np.array([[5, 9, 13], [14, 10, 12], [11, 15, 19]])
+    >>> np.mean(a)
+    12.0
+    >>> np.mean(a, where=[[True], [False], [False]])
+    9.0
+
+    """
+    )
+
+    actual = getdoc(numpy_mean)
+    compare(actual, expected)
+
+
+def test_example():
+    from numpydoc_decorator.example import greet
+
+    expected = cleandoc(
+        """
+    This function will say hello.
+
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+    minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+    aliquip ex ea commodo consequat. Duis aute irure dolor in
+    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+    culpa qui officia deserunt mollit anim id est laborum.
+
+    Parameters
+    ----------
+    name : str
+        The name of the person to greet.
+    language : str, optional, default='en'
+        The language in which to greet as an ISO 639-1 code.
+
+    Returns
+    -------
+    greeting : str
+        A pleasant greeting.
+
+    Raises
+    ------
+    NotImplementedError
+        If the requested language has not been implemented yet.
+
+    See Also
+    --------
+    print : You could use this function to print your greeting.
+
+    Notes
+    -----
+    This function is useful when greeting someone else. If you would like
+    something to talk about next, you could try [1]_.
+
+    References
+    ----------
+    .. [1] O. McNoleg, "The integration of GIS, remote sensing, expert systems
+        and adaptive co-kriging for environmental habitat modelling of the
+        Highland Haggis using object-oriented, fuzzy-logic and neural- network
+        techniques," Computers & Geosciences, vol. 22, pp. 585-588, 1996.'
+
+    Examples
+    --------
+    Here is how to greet a friend in English:
+
+    >>> print(greet("Ford Prefect"))
+    Hello Ford Prefect!
+
+    Here is how to greet someone in another language:
+
+    >>> print(greet("Tricia MacMillan", language="fr"))
+    Salut Tricia MacMillan!
+
+    """
+    )
+
+    actual = getdoc(greet)
+    compare(actual, expected)
