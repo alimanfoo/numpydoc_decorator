@@ -12,13 +12,13 @@ def test_basic():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with simple parameters.",
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-        },
-        returns={
-            "qux": "Amazingly qux.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
     )
     def foo(bar, baz):
         pass
@@ -48,13 +48,13 @@ def test_long_summary():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with simple parameters and a very long summary. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-        },
-        returns={
-            "qux": "Amazingly qux.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
     )
     def foo(bar, baz):
         pass
@@ -91,13 +91,13 @@ def test_long_param_doc():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with simple parameters and a very long param doc.",
-        parameters={
-            "bar": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
-            "baz": "This is totally baz.",
-        },
-        returns={
-            "qux": "Amazingly qux.",
-        },
+        parameters=dict(
+            bar="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
     )
     def foo(bar, baz):
         pass
@@ -134,10 +134,10 @@ def test_missing_param():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            parameters={
-                "bar": "This is very bar.",
+            parameters=dict(
+                bar="This is very bar.",
                 # baz parameter is missing
-            },
+            ),
         )
         def foo(bar, baz):
             pass
@@ -159,14 +159,14 @@ def test_extra_param():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            parameters={
-                "bar": "This is very bar.",
-                "baz": "This is totally baz.",
-                "spam": "This parameter is not in the signature.",
-            },
-            returns={
-                "qux": "Amazingly qux.",
-            },
+            parameters=dict(
+                bar="This is very bar.",
+                baz="This is totally baz.",
+                spam="This parameter is not in the signature.",
+            ),
+            returns=dict(
+                qux="Amazingly qux.",
+            ),
         )
         def foo(bar, baz):
             pass
@@ -176,11 +176,11 @@ def test_parameter_order():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with typed parameters.",
-        parameters={
+        parameters=dict(
             # given in different order from signature
-            "baz": "This is totally baz.",
-            "bar": "This is very bar.",
-        },
+            baz="This is totally baz.",
+            bar="This is very bar.",
+        ),
     )
     def foo(bar, baz):
         pass
@@ -206,13 +206,13 @@ def test_parameter_types():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with typed parameters.",
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-            "qux": "Many strings.",
-            "spam": "Very healthy.",
-            "eggs": "Good on toast.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            qux="Many strings.",
+            spam="Very healthy.",
+            eggs="Good on toast.",
+        ),
     )
     def foo(
         bar: int,
@@ -295,9 +295,9 @@ def test_returns_unnamed_typed():
 def test_returns_named():
     @doc(
         summary="A function.",
-        returns={
-            "qux": "Amazingly qux.",
-        },
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
     )
     def foo():
         return 42
@@ -321,9 +321,9 @@ def test_returns_named_typed():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function.",
-        returns={
-            "qux": "Amazingly qux.",
-        },
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
     )
     def foo() -> int:
         return 42
@@ -345,10 +345,10 @@ def test_returns_named_typed():
 def test_returns_named_multi():
     @doc(
         summary="A function.",
-        returns={
-            "spam": "Very healthy.",
-            "eggs": "Good on toast.",
-        },
+        returns=dict(
+            spam="Very healthy.",
+            eggs="Good on toast.",
+        ),
     )
     def foo():
         return "hello", 42
@@ -373,10 +373,10 @@ def test_returns_named_multi():
 def test_returns_named_multi_typed():
     @doc(
         summary="A function.",
-        returns={
-            "spam": "Very healthy.",
-            "eggs": "Good on toast.",
-        },
+        returns=dict(
+            spam="Very healthy.",
+            eggs="Good on toast.",
+        ),
     )
     def foo() -> Tuple[str, int]:
         return "hello", 42
@@ -401,9 +401,9 @@ def test_returns_named_multi_typed():
 def test_returns_named_multi_typed_ellipsis():
     @doc(
         summary="A function.",
-        returns={
-            "spam": "The more the better.",
-        },
+        returns=dict(
+            spam="The more the better.",
+        ),
     )
     def foo() -> Tuple[str, ...]:
         return "spam", "spam", "spam", "spam"
@@ -429,10 +429,10 @@ def test_returns_extra_name():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            returns={
-                "spam": "Surprisingly healthy.",
-                "eggs": "Good on toast.",
-            },
+            returns=dict(
+                spam="Surprisingly healthy.",
+                eggs="Good on toast.",
+            ),
         )
         def foo() -> str:
             return "dinner"
@@ -444,11 +444,11 @@ def test_returns_extra_names():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            returns={
-                "spam": "Surprisingly healthy.",
-                "eggs": "Good on toast.",
-                "toast": "Good with eggs.",
-            },
+            returns=dict(
+                spam="Surprisingly healthy.",
+                eggs="Good on toast.",
+                toast="Good with eggs.",
+            ),
         )
         def foo() -> Tuple[str, str]:
             return "spam", "eggs"
@@ -460,9 +460,9 @@ def test_returns_extra_type():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            returns={
-                "spam": "Surprisingly healthy.",
-            },
+            returns=dict(
+                spam="Surprisingly healthy.",
+            ),
         )
         def foo() -> Tuple[str, str]:
             return "spam", "eggs"
@@ -474,10 +474,10 @@ def test_returns_extra_types():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            returns={
-                "spam": "Surprisingly healthy.",
-                "eggs": "Good on toast.",
-            },
+            returns=dict(
+                spam="Surprisingly healthy.",
+                eggs="Good on toast.",
+            ),
         )
         def foo() -> Tuple[str, str, str]:
             return "spam", "eggs", "toast"
@@ -491,13 +491,13 @@ def test_deprecation():
             version="1.6.0",
             reason="`ndobj_old` will be removed in NumPy 2.0.0, it is replaced by `ndobj_new` because the latter works also with array subclasses.",  # noqa
         ),
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-        },
-        returns={
-            "qux": "Amazingly qux.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
     )
     def foo(bar, baz):
         pass
@@ -532,13 +532,13 @@ def test_extended_summary():
     @doc(
         summary="A function worth talking about.",
         extended_summary="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",  # noqa
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-        },
-        returns={
-            "qux": "Amazingly qux.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
     )
     def foo(bar, baz):
         pass
@@ -577,13 +577,13 @@ def test_method():
         # noinspection PyUnusedLocal
         @doc(
             summary="A method with simple parameters.",
-            parameters={
-                "bar": "This is very bar.",
-                "baz": "This is totally baz.",
-            },
-            returns={
-                "qux": "Amazingly qux.",
-            },
+            parameters=dict(
+                bar="This is very bar.",
+                baz="This is totally baz.",
+            ),
+            returns=dict(
+                qux="Amazingly qux.",
+            ),
         )
         def m(self, bar, baz):
             pass
@@ -617,13 +617,13 @@ def test_parameter_defaults():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with parameters and default values.",
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-            "qux": "Amazingly qux.",
-            "spam": "Surprisingly healthy.",
-            "eggs": "Good on toast.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            qux="Amazingly qux.",
+            spam="Surprisingly healthy.",
+            eggs="Good on toast.",
+        ),
     )
     def foo(bar, baz="spam", qux=42, spam=True, eggs=None):
         pass
@@ -655,13 +655,13 @@ def test_parameter_defaults_typed():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with parameters and default values.",
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-            "qux": "Amazingly qux.",
-            "spam": "Surprisingly healthy.",
-            "eggs": "Good on toast.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            qux="Amazingly qux.",
+            spam="Surprisingly healthy.",
+            eggs="Good on toast.",
+        ),
     )
     def foo(
         bar: str,
@@ -704,12 +704,12 @@ def test_var_args_kwargs():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with variable parameters.",
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-            "args": "Anything else you feel like.",
-            "kwargs": "Passed through to somewhere else.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            args="Anything else you feel like.",
+            kwargs="Passed through to somewhere else.",
+        ),
     )
     def foo(bar, baz, *args, **kwargs):
         pass
@@ -739,12 +739,12 @@ def test_var_args_kwargs_names():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with variable parameters.",
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-            "arguments": "Anything else you feel like.",
-            "keyword_arguments": "Passed through to somewhere else.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            arguments="Anything else you feel like.",
+            keyword_arguments="Passed through to somewhere else.",
+        ),
     )
     def foo(bar, baz, *arguments, **keyword_arguments):
         pass
@@ -774,11 +774,11 @@ def test_keyword_only_args():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with keyword only args.",
-        parameters={
-            "bar": "This is very bar.",
-            "baz": "This is totally baz.",
-            "qux": "Amazingly qux.",
-        },
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            qux="Amazingly qux.",
+        ),
     )
     def foo(bar, *, baz, qux):
         pass
@@ -897,9 +897,9 @@ def test_yields_unnamed_typed_generator():
 def test_yields_named():
     @doc(
         summary="A function.",
-        yields={
-            "bar": "This is very bar.",
-        },
+        yields=dict(
+            bar="This is very bar.",
+        ),
     )
     def foo():
         return 42
@@ -924,9 +924,9 @@ def test_yields_named_typed():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function.",
-        yields={
-            "bar": "This is very bar.",
-        },
+        yields=dict(
+            bar="This is very bar.",
+        ),
     )
     def foo() -> Iterable[int]:
         yield 42
@@ -949,10 +949,10 @@ def test_yields_named_typed():
 def test_yields_named_multi():
     @doc(
         summary="A function.",
-        yields={
-            "spam": "Very healthy.",
-            "eggs": "Good on toast.",
-        },
+        yields=dict(
+            spam="Very healthy.",
+            eggs="Good on toast.",
+        ),
     )
     def foo():
         yield "hello", 42
@@ -977,10 +977,10 @@ def test_yields_named_multi():
 def test_yields_named_multi_typed():
     @doc(
         summary="A function.",
-        yields={
-            "spam": "Very healthy.",
-            "eggs": "Good on toast.",
-        },
+        yields=dict(
+            spam="Very healthy.",
+            eggs="Good on toast.",
+        ),
     )
     def foo() -> Iterable[Tuple[str, int]]:
         yield "hello", 42
@@ -1005,9 +1005,9 @@ def test_yields_named_multi_typed():
 def test_yields_named_multi_typed_ellipsis():
     @doc(
         summary="A function.",
-        yields={
-            "spam": "The more the better.",
-        },
+        yields=dict(
+            spam="The more the better.",
+        ),
     )
     def foo() -> Iterable[Tuple[str, ...]]:
         yield "spam", "spam", "spam", "spam"
@@ -1033,10 +1033,10 @@ def test_yields_extra_name():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            yields={
-                "spam": "Surprisingly healthy.",
-                "eggs": "Good on toast.",
-            },
+            yields=dict(
+                spam="Surprisingly healthy.",
+                eggs="Good on toast.",
+            ),
         )
         def foo() -> Iterable[str]:
             yield "dinner"
@@ -1048,11 +1048,11 @@ def test_yields_extra_names():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            yields={
-                "spam": "Surprisingly healthy.",
-                "eggs": "Good on toast.",
-                "toast": "Good with eggs.",
-            },
+            yields=dict(
+                spam="Surprisingly healthy.",
+                eggs="Good on toast.",
+                toast="Good with eggs.",
+            ),
         )
         def foo() -> Iterable[Tuple[str, str]]:
             yield "spam", "eggs"
@@ -1064,9 +1064,9 @@ def test_yields_extra_type():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            yields={
-                "spam": "Surprisingly healthy.",
-            },
+            yields=dict(
+                spam="Surprisingly healthy.",
+            ),
         )
         def foo() -> Iterable[Tuple[str, str]]:
             yield "spam", "eggs"
@@ -1078,10 +1078,10 @@ def test_yields_extra_types():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            yields={
-                "spam": "Surprisingly healthy.",
-                "eggs": "Good on toast.",
-            },
+            yields=dict(
+                spam="Surprisingly healthy.",
+                eggs="Good on toast.",
+            ),
         )
         def foo() -> Iterable[Tuple[str, str, str]]:
             yield "spam", "eggs", "toast"
@@ -1092,9 +1092,9 @@ def test_yields_bad_type():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            yields={
-                "spam": "Surprisingly healthy.",
-            },
+            yields=dict(
+                spam="Surprisingly healthy.",
+            ),
         )
         def foo() -> Tuple[str, str]:
             return "spam", "eggs"
@@ -1105,12 +1105,12 @@ def test_returns_yields():
         # noinspection PyUnusedLocal
         @doc(
             summary="A function with simple parameters.",
-            returns={
-                "spam": "Surprisingly healthy.",
-            },
-            yields={
-                "spam": "Surprisingly healthy.",
-            },
+            returns=dict(
+                spam="Surprisingly healthy.",
+            ),
+            yields=dict(
+                spam="Surprisingly healthy.",
+            ),
         )
         def foo() -> Iterable[str]:
             yield "spam", "eggs", "toast"
