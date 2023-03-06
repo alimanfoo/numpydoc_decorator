@@ -196,22 +196,6 @@ def doc(
     def decorator(f):
         docstring = ""
 
-        # add summary
-        if summary:
-            docstring += para(summary)
-            docstring += newline
-
-        # add deprecation warning
-        if deprecation:
-            docstring += f".. deprecated:: {deprecation['version']}" + newline
-            docstring += indent_para(deprecation["reason"])
-            docstring += newline
-
-        # add extended summary
-        if extended_summary:
-            docstring += para(extended_summary)
-            docstring += newline
-
         # check parameters against function signature
         sig = signature(f)
         for e in sig.parameters:
@@ -227,6 +211,22 @@ def doc(
                 raise DocumentationError(
                     f"Other parameter {g} not found in function signature."
                 )
+
+        # add summary
+        if summary:
+            docstring += para(summary)
+            docstring += newline
+
+        # add deprecation warning
+        if deprecation:
+            docstring += f".. deprecated:: {deprecation['version']}" + newline
+            docstring += indent_para(deprecation["reason"])
+            docstring += newline
+
+        # add extended summary
+        if extended_summary:
+            docstring += para(extended_summary)
+            docstring += newline
 
         # add parameters section
         if parameters:
