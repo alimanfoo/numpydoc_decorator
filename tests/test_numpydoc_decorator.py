@@ -211,7 +211,7 @@ def test_parameter_types():
             baz="This is totally baz.",
             qux="Many strings.",
             spam="Very healthy.",
-            eggs="Good on toast.",
+            eggs="Good with spam.",
         ),
     )
     def foo(
@@ -238,7 +238,7 @@ def test_parameter_types():
     spam : Union[list, str]
         Very healthy.
     eggs : Dict[str, Sequence]
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -347,7 +347,7 @@ def test_returns_named_multi():
         summary="A function.",
         returns=dict(
             spam="Very healthy.",
-            eggs="Good on toast.",
+            eggs="Good with spam.",
         ),
     )
     def foo():
@@ -362,7 +362,7 @@ def test_returns_named_multi():
     spam
         Very healthy.
     eggs
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -375,7 +375,7 @@ def test_returns_named_multi_typed():
         summary="A function.",
         returns=dict(
             spam="Very healthy.",
-            eggs="Good on toast.",
+            eggs="Good with spam.",
         ),
     )
     def foo() -> Tuple[str, int]:
@@ -390,7 +390,7 @@ def test_returns_named_multi_typed():
     spam : str
         Very healthy.
     eggs : int
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -430,8 +430,8 @@ def test_returns_extra_name():
         @doc(
             summary="A function with simple parameters.",
             returns=dict(
-                spam="Surprisingly healthy.",
-                eggs="Good on toast.",
+                spam="You'll love it.",
+                eggs="Good with spam.",
             ),
         )
         def foo() -> str:
@@ -445,8 +445,8 @@ def test_returns_extra_names():
         @doc(
             summary="A function with simple parameters.",
             returns=dict(
-                spam="Surprisingly healthy.",
-                eggs="Good on toast.",
+                spam="You'll love it.",
+                eggs="Good with spam.",
                 toast="Good with eggs.",
             ),
         )
@@ -461,7 +461,7 @@ def test_returns_extra_type():
         @doc(
             summary="A function with simple parameters.",
             returns=dict(
-                spam="Surprisingly healthy.",
+                spam="You'll love it.",
             ),
         )
         def foo() -> Tuple[str, str]:
@@ -475,8 +475,8 @@ def test_returns_extra_types():
         @doc(
             summary="A function with simple parameters.",
             returns=dict(
-                spam="Surprisingly healthy.",
-                eggs="Good on toast.",
+                spam="You'll love it.",
+                eggs="Good with spam.",
             ),
         )
         def foo() -> Tuple[str, str, str]:
@@ -621,8 +621,8 @@ def test_parameter_defaults():
             bar="This is very bar.",
             baz="This is totally baz.",
             qux="Amazingly qux.",
-            spam="Surprisingly healthy.",
-            eggs="Good on toast.",
+            spam="You'll love it.",
+            eggs="Good with spam.",
         ),
     )
     def foo(bar, baz="spam", qux=42, spam=True, eggs=None):
@@ -641,9 +641,9 @@ def test_parameter_defaults():
     qux, default=42
         Amazingly qux.
     spam, default=True
-        Surprisingly healthy.
+        You'll love it.
     eggs, default=None
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -659,8 +659,8 @@ def test_parameter_defaults_typed():
             bar="This is very bar.",
             baz="This is totally baz.",
             qux="Amazingly qux.",
-            spam="Surprisingly healthy.",
-            eggs="Good on toast.",
+            spam="You'll love it.",
+            eggs="Good with spam.",
         ),
     )
     def foo(
@@ -690,9 +690,9 @@ def test_parameter_defaults_typed():
     qux : int, default=42
         Amazingly qux.
     spam : bool, default=True
-        Surprisingly healthy.
+        You'll love it.
     eggs : {expected_eggs_type}, default=None
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -951,7 +951,7 @@ def test_yields_named_multi():
         summary="A function.",
         yields=dict(
             spam="Very healthy.",
-            eggs="Good on toast.",
+            eggs="Good with spam.",
         ),
     )
     def foo():
@@ -966,7 +966,7 @@ def test_yields_named_multi():
     spam
         Very healthy.
     eggs
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -979,7 +979,7 @@ def test_yields_named_multi_typed():
         summary="A function.",
         yields=dict(
             spam="Very healthy.",
-            eggs="Good on toast.",
+            eggs="Good with spam.",
         ),
     )
     def foo() -> Iterable[Tuple[str, int]]:
@@ -994,7 +994,7 @@ def test_yields_named_multi_typed():
     spam : str
         Very healthy.
     eggs : int
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -1034,8 +1034,8 @@ def test_yields_extra_name():
         @doc(
             summary="A function with simple parameters.",
             yields=dict(
-                spam="Surprisingly healthy.",
-                eggs="Good on toast.",
+                spam="You'll love it.",
+                eggs="Good with spam.",
             ),
         )
         def foo() -> Iterable[str]:
@@ -1049,8 +1049,8 @@ def test_yields_extra_names():
         @doc(
             summary="A function with simple parameters.",
             yields=dict(
-                spam="Surprisingly healthy.",
-                eggs="Good on toast.",
+                spam="You'll love it.",
+                eggs="Good with spam.",
                 toast="Good with eggs.",
             ),
         )
@@ -1065,7 +1065,7 @@ def test_yields_extra_type():
         @doc(
             summary="A function with simple parameters.",
             yields=dict(
-                spam="Surprisingly healthy.",
+                spam="You'll love it.",
             ),
         )
         def foo() -> Iterable[Tuple[str, str]]:
@@ -1079,8 +1079,8 @@ def test_yields_extra_types():
         @doc(
             summary="A function with simple parameters.",
             yields=dict(
-                spam="Surprisingly healthy.",
-                eggs="Good on toast.",
+                spam="You'll love it.",
+                eggs="Good with spam.",
             ),
         )
         def foo() -> Iterable[Tuple[str, str, str]]:
@@ -1093,7 +1093,7 @@ def test_yields_bad_type():
         @doc(
             summary="A function with simple parameters.",
             yields=dict(
-                spam="Surprisingly healthy.",
+                spam="You'll love it.",
             ),
         )
         def foo() -> Tuple[str, str]:
@@ -1106,10 +1106,10 @@ def test_returns_yields():
         @doc(
             summary="A function with simple parameters.",
             returns=dict(
-                spam="Surprisingly healthy.",
+                spam="You'll love it.",
             ),
             yields=dict(
-                spam="Surprisingly healthy.",
+                spam="You'll love it.",
             ),
         )
         def foo() -> Iterable[str]:
@@ -1125,8 +1125,8 @@ def test_other_parameters():
             baz="This is totally baz.",
         ),
         other_parameters=dict(
-            spam="Surprisingly healthy.",
-            eggs="Good on toast.",
+            spam="You'll love it.",
+            eggs="Good with spam.",
         ),
         returns=dict(
             qux="Amazingly qux.",
@@ -1154,9 +1154,9 @@ def test_other_parameters():
     Other Parameters
     ----------------
     spam
-        Surprisingly healthy.
+        You'll love it.
     eggs
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -1173,8 +1173,8 @@ def test_other_parameters_typed():
             baz="This is totally baz.",
         ),
         other_parameters=dict(
-            spam="Surprisingly healthy.",
-            eggs="Good on toast.",
+            spam="You'll love it.",
+            eggs="Good with spam.",
         ),
         returns=dict(
             qux="Amazingly qux.",
@@ -1202,9 +1202,9 @@ def test_other_parameters_typed():
     Other Parameters
     ----------------
     spam : float
-        Surprisingly healthy.
+        You'll love it.
     eggs : Tuple[int]
-        Good on toast.
+        Good with spam.
 
     """
     )
@@ -1225,8 +1225,8 @@ def test_extra_other_param():
                 qux="Amazingly qux.",
             ),
             other_parameters=dict(
-                spam="Surprisingly healthy.",
-                eggs="Good on toast.",
+                spam="You'll love it.",
+                eggs="Good with spam.",
             ),
         )
         def foo(bar, baz, spam):
@@ -1246,7 +1246,7 @@ def test_missing_other_param():
                 qux="Amazingly qux.",
             ),
             other_parameters=dict(
-                spam="Surprisingly healthy.",
+                spam="You'll love it.",
                 # eggs param is missing
             ),
         )
@@ -1318,7 +1318,144 @@ def test_raises_warns_warnings():
     compare(actual, expected)
 
 
-# TODO see also section
+def test_see_also_string():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        see_also="spam",
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    See Also
+    --------
+    spam
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_see_also_sequence():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        see_also=["spam", "eggs", print],
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    See Also
+    --------
+    spam
+    eggs
+    print
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_see_also_mapping():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        see_also=dict(
+            spam="You'll love it.",
+            eggs="Good with spam.",
+            bacon=None,
+            lobster_thermidor="Aux crevettes with a Mornay sauce, garnished with truffle pâté, brandy, and a fried egg on top, and Spam.",  # noqa
+        ),
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    See Also
+    --------
+    spam : You'll love it.
+    eggs : Good with spam.
+    bacon
+    lobster_thermidor :
+        Aux crevettes with a Mornay sauce, garnished with truffle pâté,
+        brandy, and a fried egg on top, and Spam.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
 # TODO notes section
 # TODO references section
 # TODO examples section

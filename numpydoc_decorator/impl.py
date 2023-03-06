@@ -1,7 +1,7 @@
 from collections.abc import Generator, Iterable, Iterator
 from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Mapping, Optional, Union
+from typing import Mapping, Optional, Sequence, Union
 
 try:
     from typing import get_args as typing_get_args
@@ -181,6 +181,39 @@ def format_raises(raises):
     return docstring
 
 
+def format_maybe_code(obj):
+    return getattr(obj, "__qualname__", str(obj))
+
+
+def format_see_also(see_also):
+    if isinstance(see_also, str):
+        # assume a single function
+        return format_maybe_code(see_also).strip() + newline
+
+    elif isinstance(see_also, Sequence):
+        # assume a sequence of functions
+        docstring = ""
+        for item in see_also:
+            docstring += format_maybe_code(item).strip() + newline
+        return docstring
+
+    elif isinstance(see_also, Mapping):
+        # assume functions with descriptions
+        docstring = ""
+        for name, description in see_also.items():
+            docstring += format_maybe_code(name).strip()
+            if description:
+                docstring += " :"
+                if len(description) < 70:
+                    docstring += " " + description.strip() + newline
+                else:
+                    docstring += newline
+                    docstring += format_indented_paragraph(description)
+            else:
+                docstring += newline
+        return docstring
+
+
 def doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
@@ -192,6 +225,7 @@ def doc(
     raises: Optional[Mapping[str, str]] = None,
     warns: Optional[Mapping[str, str]] = None,
     warnings: Optional[str] = None,
+    see_also: Optional[Union[str, Sequence[str], Mapping[str, str]]] = None,
 ):
     """Provide documentation for a function or method, to be formatted as a
     numpy-style docstring (numpydoc).
@@ -228,6 +262,8 @@ def doc(
         conditions.
     warnings : str, optional
         An optional section with cautions to the user in free text/reST.
+    see_also : str or Sequence[str] or Mapping[str, str], optional
+        An optional section used to refer to related code.
 
     Returns
     -------
@@ -329,10 +365,18 @@ def doc(
             docstring += format_raises(warns)
             docstring += newline
 
+        # add warnings section
         if warnings:
             docstring += "Warnings" + newline
             docstring += "--------" + newline
             docstring += format_paragraph(warnings)
+            docstring += newline
+
+        # add see also section
+        if see_also:
+            docstring += "See Also" + newline
+            docstring += "--------" + newline
+            docstring += format_see_also(see_also)
             docstring += newline
 
         # final cleanup
