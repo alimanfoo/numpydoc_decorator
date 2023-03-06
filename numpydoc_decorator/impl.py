@@ -1,3 +1,4 @@
+from collections.abc import Generator, Iterable, Iterator
 from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
 from typing import Mapping, Optional, Union
@@ -69,51 +70,55 @@ def format_type(t):
 
 def format_returns(returns, sig):
     if isinstance(returns, str):
-        return format_returns_simple(returns, sig)
+        return format_returns_unnamed(returns, sig.return_annotation)
     elif isinstance(returns, Mapping):
-        return format_returns_named(returns, sig)
+        return format_returns_named(returns, sig.return_annotation)
     else:
         raise TypeError("returns must be str or Mapping")
 
 
-def format_returns_simple(returns, sig):
-    return_type = sig.return_annotation
-    if return_type is Parameter.empty:
+def format_returns_unnamed(returns, return_annotation):
+    if return_annotation is Parameter.empty:
         # just assume it's a description of the return value
         docstring = para(returns)
     else:
         # provide the type
-        docstring = format_type(return_type) + newline
+        docstring = format_type(return_annotation) + newline
         docstring += indent_para(returns)
     docstring += newline
     return docstring
 
 
-def format_returns_named(returns, sig):
+def format_returns_named(returns, return_annotation):
     docstring = ""
-    return_annotation = sig.return_annotation
 
-    # handle possibility of multiple return values
-    if typing_get_origin(return_annotation) is tuple:
-        typing_args = typing_get_args(return_annotation)
-        if Ellipsis in typing_args:
-            # treat as a single return value
-            return_types = [return_annotation]
-        else:
-            # treat as multiple return values
-            return_types = typing_args
-    elif return_annotation is Parameter.empty:
+    if return_annotation is Parameter.empty:
         # trust the documentation regarding number of return values
         return_types = [Parameter.empty] * len(returns)
+
+    # handle possibility of multiple return values
+    elif typing_get_origin(return_annotation) is tuple:
+        return_type_args = typing_get_args(return_annotation)
+        if return_type_args and Ellipsis not in return_type_args:
+            # treat as multiple return values
+            return_types = return_type_args
+        else:
+            # treat as a single return value
+            return_types = [return_annotation]
+
     else:
         # assume a single return value
         return_types = [return_annotation]
 
     if len(returns) > len(return_types):
-        raise DocumentationError("more return values documented than types")
+        raise DocumentationError(
+            f"more values documented {list(returns)} than types {return_types}"
+        )
 
     if len(returns) < len(return_types):
-        raise DocumentationError("more return types than values documented")
+        raise DocumentationError(
+            f"more types {return_types} than values documented {list(returns)}"
+        )
 
     for (return_name, return_doc), return_type in zip(returns.items(), return_types):
         docstring += return_name.strip()
@@ -126,15 +131,57 @@ def format_returns_named(returns, sig):
     return docstring
 
 
+def get_yield_annotation(sig):
+    return_annotation = sig.return_annotation
+
+    if return_annotation is Parameter.empty:
+        # no return annotation
+        return Parameter.empty
+
+    return_type_origin = typing_get_origin(return_annotation)
+
+    # check return type is compatible with yields
+    if return_type_origin not in [Generator, Iterator, Iterable]:
+        raise DocumentationError(
+            f"return type {return_type_origin!r} is not compatible with yields"
+        )
+
+    # extract yield annotation if possible
+    return_type_args = typing_get_args(return_annotation)
+
+    if not return_type_args:
+        # no yield annotation
+        return Parameter.empty
+
+    else:
+        yield_annotation = return_type_args[0]
+        return yield_annotation
+
+
+def format_yields(yields, sig):
+    # yields section is basically the same as the returns section, except we
+    # need to access the yield annotation from within the return annotation
+    if isinstance(yields, str):
+        return format_returns_unnamed(yields, get_yield_annotation(sig))
+    elif isinstance(yields, Mapping):
+        return format_returns_named(yields, get_yield_annotation(sig))
+    else:
+        raise TypeError("yields must be str or Mapping")
+
+
 def doc(
     summary: str = None,
     deprecation: Optional[Mapping[str, str]] = None,
     extended_summary: Optional[str] = None,
     parameters: Optional[Mapping[str, str]] = None,
     returns: Optional[Union[str, Mapping[str, str]]] = None,
+    yields: Optional[Union[str, Mapping[str, str]]] = None,
 ):
     if parameters is None:
         parameters = dict()
+
+    if returns and yields:
+        raise DocumentationError("cannot have both returns and yields")
 
     def decorator(f):
         docstring = ""
@@ -166,18 +213,24 @@ def doc(
                     f"Parameter {g} not found in function signature."
                 )
 
+        # add parameters section
         if sig.parameters:
             docstring += "Parameters" + newline
             docstring += "----------" + newline
             docstring += format_parameters(parameters, sig)
             docstring += newline
 
+        # add returns section
         if returns:
             docstring += "Returns" + newline
             docstring += "-------" + newline
             docstring += format_returns(returns, sig)
 
-        # TODO yields
+        # add yields section
+        if yields:
+            docstring += "Yields" + newline
+            docstring += "------" + newline
+            docstring += format_yields(yields, sig)
 
         # TODO receives
 
