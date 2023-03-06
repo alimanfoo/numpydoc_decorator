@@ -210,7 +210,7 @@ def test_parameter_types():
             bar="This is very bar.",
             baz="This is totally baz.",
             qux="Many strings.",
-            spam="Very healthy.",
+            spam="You'll love it.",
             eggs="Good with spam.",
         ),
     )
@@ -236,7 +236,7 @@ def test_parameter_types():
     qux : Sequence[str]
         Many strings.
     spam : Union[list, str]
-        Very healthy.
+        You'll love it.
     eggs : Dict[str, Sequence]
         Good with spam.
 
@@ -346,7 +346,7 @@ def test_returns_named_multi():
     @doc(
         summary="A function.",
         returns=dict(
-            spam="Very healthy.",
+            spam="You'll love it.",
             eggs="Good with spam.",
         ),
     )
@@ -360,7 +360,7 @@ def test_returns_named_multi():
     Returns
     -------
     spam
-        Very healthy.
+        You'll love it.
     eggs
         Good with spam.
 
@@ -374,7 +374,7 @@ def test_returns_named_multi_typed():
     @doc(
         summary="A function.",
         returns=dict(
-            spam="Very healthy.",
+            spam="You'll love it.",
             eggs="Good with spam.",
         ),
     )
@@ -388,7 +388,7 @@ def test_returns_named_multi_typed():
     Returns
     -------
     spam : str
-        Very healthy.
+        You'll love it.
     eggs : int
         Good with spam.
 
@@ -902,7 +902,7 @@ def test_yields_named():
         ),
     )
     def foo():
-        return 42
+        yield 42
 
     # this isn't strictly kosher as numpydoc demands type is always given
     expected = cleandoc(
@@ -950,7 +950,7 @@ def test_yields_named_multi():
     @doc(
         summary="A function.",
         yields=dict(
-            spam="Very healthy.",
+            spam="You'll love it.",
             eggs="Good with spam.",
         ),
     )
@@ -964,7 +964,7 @@ def test_yields_named_multi():
     Yields
     ------
     spam
-        Very healthy.
+        You'll love it.
     eggs
         Good with spam.
 
@@ -978,7 +978,7 @@ def test_yields_named_multi_typed():
     @doc(
         summary="A function.",
         yields=dict(
-            spam="Very healthy.",
+            spam="You'll love it.",
             eggs="Good with spam.",
         ),
     )
@@ -992,7 +992,7 @@ def test_yields_named_multi_typed():
     Yields
     ------
     spam : str
-        Very healthy.
+        You'll love it.
     eggs : int
         Good with spam.
 
@@ -1114,6 +1114,347 @@ def test_returns_yields():
         )
         def foo() -> Iterable[str]:
             yield "spam", "eggs", "toast"
+
+
+def test_receives_unnamed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        yields="Egg, bacon, sausage, and Spam.",
+        receives="Lobster thermidor.",
+    )
+    def foo():
+        x = yield 42  # noqa
+
+    # this isn't strictly kosher as numpydoc demands type is always given
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    Egg, bacon, sausage, and Spam.
+
+    Receives
+    --------
+    Lobster thermidor.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_unnamed_typed_bare():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        yields="Egg, bacon, sausage, and Spam.",
+        receives="Lobster thermidor.",
+    )
+    def foo() -> Generator:
+        x = yield 42  # noqa
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    Egg, bacon, sausage, and Spam.
+
+    Receives
+    --------
+    Lobster thermidor.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_unnamed_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        yields="Egg, bacon, sausage, and Spam.",
+        receives="Lobster thermidor.",
+    )
+    def foo() -> Generator[int, float, None]:
+        x = yield 42  # noqa
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    int
+        Egg, bacon, sausage, and Spam.
+
+    Receives
+    --------
+    float
+        Lobster thermidor.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_named():
+    @doc(
+        summary="A function.",
+        yields=dict(
+            bar="This is very bar.",
+        ),
+        receives=dict(
+            baz="This is totally baz.",
+        ),
+    )
+    def foo():
+        x = yield 42  # noqa
+
+    # this isn't strictly kosher as numpydoc demands type is always given
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    bar
+        This is very bar.
+
+    Receives
+    --------
+    baz
+        This is totally baz.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_named_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+        yields=dict(
+            bar="This is very bar.",
+        ),
+        receives=dict(
+            baz="This is totally baz.",
+        ),
+    )
+    def foo() -> Generator[int, float, None]:
+        x = yield 42  # noqa
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    bar : int
+        This is very bar.
+
+    Receives
+    --------
+    baz : float
+        This is totally baz.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_named_multi():
+    @doc(
+        summary="A function.",
+        yields=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        receives=dict(
+            spam="You'll love it.",
+            eggs="Good with spam.",
+        ),
+    )
+    def foo():
+        x, y = yield "hello", 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Receives
+    --------
+    spam
+        You'll love it.
+    eggs
+        Good with spam.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_named_multi_typed():
+    @doc(
+        summary="A function.",
+        yields=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        receives=dict(
+            spam="You'll love it.",
+            eggs="Good with spam.",
+        ),
+    )
+    def foo() -> Generator[Tuple[str, int], Tuple[float, bool], None]:
+        x, y = yield "hello", 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    bar : str
+        This is very bar.
+    baz : int
+        This is totally baz.
+
+    Receives
+    --------
+    spam : float
+        You'll love it.
+    eggs : bool
+        Good with spam.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_named_multi_typed_ellipsis():
+    @doc(
+        summary="A function.",
+        yields=dict(
+            spam="The more the better.",
+        ),
+        receives=dict(eggs="Good with spam."),
+    )
+    def foo() -> Generator[Tuple[str, ...], Tuple[float, ...], None]:
+        x = yield "spam", "spam", "spam", "spam"  # noqa
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Yields
+    ------
+    spam : Tuple[str, ...]
+        The more the better.
+
+    Receives
+    --------
+    eggs : Tuple[float, ...]
+        Good with spam.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
+def test_receives_extra_name():
+    # here there are more receive values documented than there are types
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            yields=dict(bar="Totally bar."),
+            receives=dict(
+                spam="You'll love it.",
+                eggs="Good with spam.",
+            ),
+        )
+        def foo() -> Generator[str, float, None]:
+            x = yield "dinner"  # noqa
+
+
+def test_receives_extra_names():
+    # here there are more yield values documented than there are types
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            yields=dict(bar="Totally bar."),
+            receives=dict(
+                spam="You'll love it.",
+                eggs="Good with spam.",
+                bacon="Good with eggs.",
+            ),
+        )
+        def foo() -> Generator[int, Tuple[str, str], None]:
+            yield "spam", "eggs"
+
+
+def test_receives_extra_type():
+    # here there are more yield types than yield values documented
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            yields=dict(bar="Totally bar."),
+            receives=dict(
+                spam="You'll love it.",
+            ),
+        )
+        def foo() -> Generator[str, Tuple[str, str], None]:
+            x = yield "spam"  # noqa
+
+
+def test_receives_extra_types():
+    # here there are more receive types than yield values documented
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            yields=dict(bar="Totally bar."),
+            receives=dict(
+                spam="You'll love it.",
+                eggs="Good with spam.",
+            ),
+        )
+        def foo() -> Generator[str, Tuple[str, str, str], None]:
+            x = yield "spam"  # noqa
+
+
+def test_receives_no_yields():
+    with pytest.raises(DocumentationError):
+        # noinspection PyUnusedLocal
+        @doc(
+            summary="A function with simple parameters.",
+            receives=dict(
+                spam="You'll love it.",
+            ),
+        )
+        def foo() -> Generator[str, str, None]:
+            x = yield "spam"  # noqa
 
 
 def test_other_parameters():
@@ -1684,7 +2025,6 @@ def test_examples():
     compare(actual, expected)
 
 
-# TODO receives section
 # TODO test numpydoc example
 # TODO test some real numpy functions
 # TODO README examples, checked via CI somehow

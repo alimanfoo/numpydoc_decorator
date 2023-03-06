@@ -181,15 +181,53 @@ def get_yield_annotation(sig):
         return yield_annotation
 
 
+def get_send_annotation(sig):
+    return_annotation = sig.return_annotation
+
+    if return_annotation is Parameter.empty:
+        # no return annotation
+        return Parameter.empty
+
+    return_type_origin = typing_get_origin(return_annotation)
+
+    # check return type is compatible with yields
+    if return_type_origin is not Generator:
+        raise DocumentationError(
+            f"return type {return_type_origin!r} is not compatible with receives"
+        )
+
+    # extract yield annotation if possible
+    return_type_args = typing_get_args(return_annotation)
+
+    if not return_type_args:
+        # no yield annotation
+        return Parameter.empty
+
+    else:
+        send_annotation = return_type_args[1]
+        return send_annotation
+
+
 def format_yields(yields, sig):
     # yields section is basically the same as the returns section, except we
-    # need to access the yield annotation from within the return annotation
+    # need to access the YieldType annotation from within the return annotation
     if isinstance(yields, str):
         return format_returns_unnamed(yields, get_yield_annotation(sig))
     elif isinstance(yields, Mapping):
         return format_returns_named(yields, get_yield_annotation(sig))
     else:
         raise TypeError("yields must be str or Mapping")
+
+
+def format_receives(receives, sig):
+    # receives section is basically the same as the returns section, except we
+    # need to access the SendType annotation from within the return annotation
+    if isinstance(receives, str):
+        return format_returns_unnamed(receives, get_send_annotation(sig))
+    elif isinstance(receives, Mapping):
+        return format_returns_named(receives, get_send_annotation(sig))
+    else:
+        raise TypeError("receives must be str or Mapping")
 
 
 def format_raises(raises):
@@ -249,6 +287,7 @@ def doc(
     parameters: Optional[Mapping[str, str]] = None,
     returns: Optional[Union[str, Mapping[str, str]]] = None,
     yields: Optional[Union[str, Mapping[str, str]]] = None,
+    receives: Optional[Union[str, Mapping[str, str]]] = None,
     other_parameters: Optional[Mapping[str, str]] = None,
     raises: Optional[Mapping[str, str]] = None,
     warns: Optional[Mapping[str, str]] = None,
@@ -271,20 +310,16 @@ def doc(
     extended_summary : str, optional
         A few sentences giving an extended description.
     parameters : Mapping[str, str], optional
-        Description of the function arguments and keywords. Note that types will
-        be obtained from the function's type annotations and do not need to be
-        provided here.
+        Description of the function arguments and keywords.
     returns : str or Mapping[str, str], optional
-        Explanation of the returned values. Note that types will be obtained from
-        the function's return annotation and do not need to be provided here.
+        Explanation of the returned values.
     yields : str or Mapping[str, str], optional
-        Explanation of the yielded values. Note that types will be obtained from
-        the function's return annotation and do not need to be provided here.
+        Explanation of the yielded values.
         This is relevant to generators only.
+    receives : str or Mapping[str, str], optional
+        Explanation of parameters passed to a generator’s `.send()` method.
     other_parameters : Mapping[str, str], optional
-        An optional section used to describe infrequently used parameters. It
-        should only be used if a function has a large number of keyword
-        parameters, to prevent cluttering the Parameters section.
+        An optional section used to describe infrequently used parameters.
     raises : Mapping[str, str], optional
         An optional section detailing which errors get raised and under what
         conditions.
@@ -297,8 +332,7 @@ def doc(
         An optional section used to refer to related code.
     notes : str, optional
         An optional section that provides additional information about the code,
-        possibly including a discussion of the algorithm. This section may
-        include mathematical equations, written in LaTeX format.
+        possibly including a discussion of the algorithm.
     references : Mapping[str, str], optional
         References cited in the Notes section may be listed here.
     examples : str, optional
@@ -328,6 +362,9 @@ def doc(
 
     if returns and yields:
         raise DocumentationError("cannot have both returns and yields")
+
+    if receives and not yields:
+        raise DocumentationError("if receives, must also have yields")
 
     def decorator(f):
         docstring = ""
@@ -382,6 +419,12 @@ def doc(
             docstring += "Yields" + newline
             docstring += "------" + newline
             docstring += format_yields(yields, sig)
+
+        # add receives section
+        if receives:
+            docstring += "Receives" + newline
+            docstring += "--------" + newline
+            docstring += format_receives(receives, sig)
 
         # add other parameters section
         if other_parameters:
