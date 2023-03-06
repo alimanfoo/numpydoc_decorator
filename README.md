@@ -1,6 +1,7 @@
 # numpydoc_decorator
 
-This package allows you to build [numpy-style docstrings](https://numpydoc.readthedocs.io/en/latest/format.html#sections)
+This package allows you to build [numpy-style
+docstrings](https://numpydoc.readthedocs.io/en/latest/format.html#sections)
 programmatically and apply them using a decorator. This can be useful
 because:
 
@@ -59,7 +60,7 @@ from numpydoc_decorator import doc
             and adaptive co-kriging for environmental habitat modelling of the
             Highland Haggis using object-oriented, fuzzy-logic and neural-
             network techniques," Computers & Geosciences, vol. 22, pp. 585-588,
-            1996.'
+            1996.
         """,
     },
     examples="""
@@ -133,7 +134,7 @@ References
 .. [1] O. McNoleg, "The integration of GIS, remote sensing, expert systems
     and adaptive co-kriging for environmental habitat modelling of the
     Highland Haggis using object-oriented, fuzzy-logic and neural- network
-    techniques," Computers & Geosciences, vol. 22, pp. 585-588, 1996.'
+    techniques," Computers & Geosciences, vol. 22, pp. 585-588, 1996.
 
 Examples
 --------
@@ -151,7 +152,7 @@ Salut Tricia MacMillan!
 
 ## Caveats
 
-There are probably lots of edge cases that this package has not covered
-yet. If you find something doesn't work as expected, or deviates from
-the numpydoc style guide in an unreasonable way, please feel free to
-submit a pull request.
+There are probably lots of edge cases that this package has not
+covered yet. If you find something doesn't work as expected, or
+deviates from the numpydoc style guide in an unreasonable way, please
+feel free to submit a pull request.
