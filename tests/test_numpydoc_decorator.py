@@ -1254,6 +1254,54 @@ def test_missing_other_param():
             pass
 
 
+def test_raises():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        raises=dict(
+            FileNotFoundError="If the file isn't there.",
+            OSError="If something really bad goes wrong.",
+        ),
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar
+        This is very bar.
+    baz
+        This is totally baz.
+
+    Returns
+    -------
+    qux
+        Amazingly qux.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file isn't there.
+    OSError
+        If something really bad goes wrong.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+
+
 # TODO raises section
 # TODO warns section
 # TODO warnings section

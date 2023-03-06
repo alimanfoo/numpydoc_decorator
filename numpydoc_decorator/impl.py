@@ -173,6 +173,14 @@ def format_yields(yields, sig):
         raise TypeError("yields must be str or Mapping")
 
 
+def format_raises(raises):
+    docstring = ""
+    for error, description in raises.items():
+        docstring += error + newline
+        docstring += indent_para(description)
+    return docstring
+
+
 def doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
@@ -181,6 +189,7 @@ def doc(
     returns: Optional[Union[str, Mapping[str, str]]] = None,
     yields: Optional[Union[str, Mapping[str, str]]] = None,
     other_parameters: Optional[Mapping[str, str]] = None,
+    raises: Optional[Mapping[str, str]] = None,
 ):
     if parameters is None:
         parameters = dict()
@@ -254,21 +263,12 @@ def doc(
             docstring += format_parameters(other_parameters, sig)
             docstring += newline
 
-        # TODO receives
-
-        # TODO raises
-
-        # TODO warns
-
-        # TODO warnings
-
-        # TODO see also
-
-        # TODO notes
-
-        # TODO references
-
-        # TODO examples
+        # add raises section
+        if raises:
+            docstring += "Raises" + newline
+            docstring += "------" + newline
+            docstring += format_raises(raises)
+            docstring += newline
 
         # final cleanup
         docstring = cleandoc(docstring)
