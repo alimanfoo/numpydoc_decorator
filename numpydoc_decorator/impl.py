@@ -31,8 +31,12 @@ def format_paragraphs(s):
     parts = prep.split("\n\n")
     docstring = ""
     for part in parts:
-        print(part)
-        if part.startswith(" ") or part.startswith(">"):
+        if (
+            part.startswith(" ")
+            or part.startswith("..")
+            or part.startswith(">")
+            or part.startswith("[")
+        ):
             # leave this as-is
             docstring += part + newline + newline
         else:
