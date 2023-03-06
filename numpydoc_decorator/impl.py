@@ -248,7 +248,7 @@ def doc(
             docstring += format_yields(yields, sig)
 
         # add other parameters section
-        if sig.parameters and other_parameters:
+        if other_parameters:
             docstring += "Other Parameters" + newline
             docstring += "----------------" + newline
             docstring += format_parameters(other_parameters, sig)
