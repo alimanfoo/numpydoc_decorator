@@ -14,6 +14,7 @@ typing_extensions = "*"
 pytest = "*"
 pytest-xdist = "*"
 testfixtures = "*"
+numpy = "*"
 
 [build-system]
 requires = ["poetry-core"]
