@@ -34,6 +34,10 @@ def format_parameters(parameters, sig):
             # assume this is a method, don't document self parameter
             continue
 
+        if param_name not in parameters:
+            # account for documentation of parameters and other parameters separately
+            continue
+
         # add markers for variable parameters
         if param.kind == Parameter.VAR_POSITIONAL:
             docstring += "*"
@@ -170,15 +174,21 @@ def format_yields(yields, sig):
 
 
 def doc(
-    summary: str = None,
+    summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
     extended_summary: Optional[str] = None,
     parameters: Optional[Mapping[str, str]] = None,
     returns: Optional[Union[str, Mapping[str, str]]] = None,
     yields: Optional[Union[str, Mapping[str, str]]] = None,
+    other_parameters: Optional[Mapping[str, str]] = None,
 ):
     if parameters is None:
         parameters = dict()
+    if other_parameters is None:
+        other_parameters = dict()
+    all_parameters = dict()
+    all_parameters.update(parameters)
+    all_parameters.update(other_parameters)
 
     if returns and yields:
         raise DocumentationError("cannot have both returns and yields")
@@ -205,16 +215,21 @@ def doc(
         # check parameters against function signature
         sig = signature(f)
         for e in sig.parameters:
-            if e != "self" and e not in parameters:
+            if e != "self" and e not in all_parameters:
                 raise DocumentationError(f"Parameter {e} not documented.")
         for g in parameters:
             if g not in sig.parameters:
                 raise DocumentationError(
                     f"Parameter {g} not found in function signature."
                 )
+        for g in other_parameters:
+            if g not in sig.parameters:
+                raise DocumentationError(
+                    f"Other parameter {g} not found in function signature."
+                )
 
         # add parameters section
-        if sig.parameters:
+        if parameters:
             docstring += "Parameters" + newline
             docstring += "----------" + newline
             docstring += format_parameters(parameters, sig)
@@ -231,6 +246,13 @@ def doc(
             docstring += "Yields" + newline
             docstring += "------" + newline
             docstring += format_yields(yields, sig)
+
+        # add other parameters section
+        if sig.parameters and other_parameters:
+            docstring += "Other Parameters" + newline
+            docstring += "----------------" + newline
+            docstring += format_parameters(other_parameters, sig)
+            docstring += newline
 
         # TODO receives
 
