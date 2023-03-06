@@ -2026,43 +2026,19 @@ def test_examples():
     compare(actual, expected)
 
 
-def test_numpy_mean():
-    @doc(
-        summary="",
-        extended_summary="""
-        """,
-        parameters=dict(),
-        returns=dict(),
-        see_also=dict(),
-        notes="""
-        """,
-        examples="""
-        """,
-    )
-    def mean(
-        a: ArrayLike,
-        axis: Optional[Union[int, Tuple[int, ...]]] = None,
-        dtype: Optional[DTypeLike] = None,
-        out=None,
-        keepdims=None,
-        *,
-        where=None,
-    ):
-        pass
-
-    expected = """
-        Compute the arithmetic mean along the specified axis.
-
+@doc(
+    summary="Compute the arithmetic mean along the specified axis.",
+    extended_summary="""
         Returns the average of the array elements.  The average is taken over
         the flattened array by default, otherwise over the specified axis.
         `float64` intermediate and return values are used for integer inputs.
-
-        Parameters
-        ----------
-        a : array_like
+    """,
+    parameters=dict(
+        a="""
             Array containing numbers whose mean is desired. If `a` is not an
             array, a conversion is attempted.
-        axis : None or int or tuple of ints, optional
+        """,
+        axis="""
             Axis or axes along which the means are computed. The default is to
             compute the mean of the flattened array.
 
@@ -2070,17 +2046,19 @@ def test_numpy_mean():
 
             If this is a tuple of ints, a mean is performed over multiple axes,
             instead of a single axis or all the axes as before.
-        dtype : data-type, optional
+        """,
+        dtype="""
             Type to use in computing the mean.  For integer inputs, the default
             is `float64`; for floating point inputs, it is the same as the
             input dtype.
-        out : ndarray, optional
+        """,
+        out="""
             Alternate output array in which to place the result.  The default
             is ``None``; if provided, it must have the same shape as the
             expected output, but the type will be cast if necessary.
             See :ref:`ufuncs-output-type` for more details.
-
-        keepdims : bool, optional
+        """,
+        keepdims="""
             If this is set to True, the axes which are reduced are left
             in the result as dimensions with size one. With this option,
             the result will broadcast correctly against the input array.
@@ -2090,11 +2068,35 @@ def test_numpy_mean():
             `ndarray`, however any non-default value will be.  If the
             sub-class' method does not implement `keepdims` any
             exceptions will be raised.
-
-        where : array_like of bool, optional
+        """,
+        where="""
             Elements to include in the mean. See `~numpy.ufunc.reduce` for details.
 
             .. versionadded:: 1.20.0
+
+        """,
+    ),
+    returns=dict(),
+    see_also=dict(),
+    notes="""
+    """,
+    examples="""
+    """,
+)
+def numpy_mean(
+    a: ArrayLike,
+    axis: Optional[Union[int, Tuple[int, ...]]] = None,
+    dtype: Optional[DTypeLike] = None,
+    out: Optional[ArrayLike] = None,
+    keepdims: Optional[bool] = None,
+    *,
+    where: Optional[ArrayLike[bool]] = None,
+):
+    pass
+
+
+def test_numpy_mean():
+    expected = """
 
         Returns
         -------
@@ -2154,7 +2156,7 @@ def test_numpy_mean():
 
     """
 
-    actual = getdoc(mean)
+    actual = getdoc(numpy_mean)
     compare(actual, expected)
 
 
