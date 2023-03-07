@@ -1,12 +1,48 @@
+from collections.abc import Mapping
 from inspect import cleandoc, getdoc
 from typing import Dict, Generator, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
 import numpy
 import pytest
 from numpy.typing import ArrayLike, DTypeLike
+from numpydoc.docscrape import FunctionDoc
+from numpydoc.validate import validate as numpydoc_validate
 from testfixtures import compare
 
 from numpydoc_decorator import DocumentationError, doc
+
+
+def validate(f, allow=None):
+    # noinspection PyTypeChecker
+    report: Mapping = numpydoc_validate(FunctionDoc(f))
+    errors = report["errors"]
+
+    # numpydoc validation errors that we will ignore in all cases
+    ignored_errors = {
+        # Summary should fit in a single line
+        "SS06",
+        # No extended summary found
+        "ES01",
+        # Parameter has no type
+        "PR04",
+        # The first line of the Returns section should contain only the type,
+        # unless multiple values are being returned
+        "RT02",
+        # See Also section not found
+        "SA01",
+        # Missing description for See Also reference
+        "SA04",
+        # No examples section found
+        "EX01",
+    }
+
+    # ignore errors in some specific cases
+    if allow:
+        ignored_errors.update(allow)
+
+    for code, desc in errors:
+        if code not in ignored_errors:
+            assert False, (code, desc)
 
 
 def test_basic():
@@ -30,19 +66,20 @@ def test_basic():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_long_summary():
@@ -73,19 +110,20 @@ def test_long_summary():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_long_param_doc():
@@ -109,7 +147,7 @@ def test_long_param_doc():
 
     Parameters
     ----------
-    bar
+    bar :
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
         eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
         minim veniam, quis nostrud exercitation ullamco laboris nisi ut
@@ -117,17 +155,18 @@ def test_long_param_doc():
         reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
         pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
         culpa qui officia deserunt mollit anim id est laborum.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_missing_param():
@@ -192,15 +231,16 @@ def test_parameter_order():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_parameter_types():
@@ -245,6 +285,7 @@ def test_parameter_types():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_returns_unnamed():
@@ -268,6 +309,7 @@ def test_returns_unnamed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo, allow={"RT03"})
 
 
 def test_returns_unnamed_typed():
@@ -291,6 +333,7 @@ def test_returns_unnamed_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_returns_named():
@@ -310,12 +353,13 @@ def test_returns_named():
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_returns_named_typed():
@@ -341,6 +385,7 @@ def test_returns_named_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_returns_named_multi():
@@ -360,15 +405,16 @@ def test_returns_named_multi():
 
     Returns
     -------
-    spam
+    spam :
         You'll love it.
-    eggs
+    eggs :
         Good with spam.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_returns_named_multi_typed():
@@ -397,6 +443,7 @@ def test_returns_named_multi_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_returns_named_multi_typed_ellipsis():
@@ -422,6 +469,7 @@ def test_returns_named_multi_typed_ellipsis():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_returns_extra_name():
@@ -513,19 +561,20 @@ def test_deprecation():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_extended_summary():
@@ -558,19 +607,20 @@ def test_extended_summary():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_method():
@@ -597,14 +647,14 @@ def test_method():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
     """
     )
@@ -612,9 +662,10 @@ def test_method():
     compare(actual, expected)
     actual = getdoc(foo.m)
     compare(actual, expected)
+    validate(foo.m)
 
 
-def test_parameter_defaults():
+def test_parameter_defaults_untyped():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with parameters and default values.",
@@ -635,21 +686,23 @@ def test_parameter_defaults():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz, optional, default: 'spam'
+    baz : optional, default: 'spam'
         This is totally baz.
-    qux, optional, default: 42
+    qux : optional, default: 42
         Amazingly qux.
-    spam, optional, default: True
+    spam : optional, default: True
         You'll love it.
-    eggs, optional
+    eggs : optional
         Good with spam.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # not strictly kosher as parameters are untyped
+    validate(foo, allow={"PR02"})
 
 
 def test_parameter_defaults_typed():
@@ -694,6 +747,7 @@ def test_parameter_defaults_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_var_args_kwargs():
@@ -716,9 +770,9 @@ def test_var_args_kwargs():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
     *args
         Anything else you feel like.
@@ -729,6 +783,7 @@ def test_var_args_kwargs():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_var_args_kwargs_names():
@@ -751,9 +806,9 @@ def test_var_args_kwargs_names():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
     *arguments
         Anything else you feel like.
@@ -764,6 +819,7 @@ def test_var_args_kwargs_names():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_keyword_only_args():
@@ -785,17 +841,18 @@ def test_keyword_only_args():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
-    qux
+    qux :
         Amazingly qux.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_unnamed():
@@ -819,6 +876,7 @@ def test_yields_unnamed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_unnamed_typed_bare():
@@ -841,6 +899,7 @@ def test_yields_unnamed_typed_bare():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 @pytest.mark.parametrize("T", [Iterator, Iterable])
@@ -865,6 +924,7 @@ def test_yields_unnamed_typed_iterator(T):
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_unnamed_typed_generator():
@@ -888,6 +948,7 @@ def test_yields_unnamed_typed_generator():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_named():
@@ -907,13 +968,14 @@ def test_yields_named():
 
     Yields
     ------
-    bar
+    bar :
         This is very bar.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_named_typed():
@@ -940,6 +1002,7 @@ def test_yields_named_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_named_multi():
@@ -959,15 +1022,16 @@ def test_yields_named_multi():
 
     Yields
     ------
-    spam
+    spam :
         You'll love it.
-    eggs
+    eggs :
         Good with spam.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_named_multi_typed():
@@ -996,6 +1060,7 @@ def test_yields_named_multi_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_named_multi_typed_ellipsis():
@@ -1021,6 +1086,7 @@ def test_yields_named_multi_typed_ellipsis():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_yields_extra_name():
@@ -1139,6 +1205,8 @@ def test_receives_unnamed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_unnamed_typed_bare():
@@ -1167,6 +1235,8 @@ def test_receives_unnamed_typed_bare():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_unnamed_typed():
@@ -1197,6 +1267,8 @@ def test_receives_unnamed_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_named():
@@ -1219,18 +1291,20 @@ def test_receives_named():
 
     Yields
     ------
-    bar
+    bar :
         This is very bar.
 
     Receives
     --------
-    baz
+    baz :
         This is totally baz.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_named_typed():
@@ -1265,6 +1339,8 @@ def test_receives_named_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_named_multi():
@@ -1280,7 +1356,7 @@ def test_receives_named_multi():
         ),
     )
     def foo():
-        x, y = yield "hello", 42
+        _, _ = yield "hello", 42
 
     expected = cleandoc(
         """
@@ -1288,22 +1364,24 @@ def test_receives_named_multi():
 
     Yields
     ------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Receives
     --------
-    spam
+    spam :
         You'll love it.
-    eggs
+    eggs :
         Good with spam.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_named_multi_typed():
@@ -1319,7 +1397,7 @@ def test_receives_named_multi_typed():
         ),
     )
     def foo() -> Generator[Tuple[str, int], Tuple[float, bool], None]:
-        x, y = yield "hello", 42
+        _, _ = yield "hello", 42
 
     expected = cleandoc(
         """
@@ -1343,6 +1421,8 @@ def test_receives_named_multi_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_named_multi_typed_ellipsis():
@@ -1354,7 +1434,7 @@ def test_receives_named_multi_typed_ellipsis():
         receives=dict(eggs="Good with spam."),
     )
     def foo() -> Generator[Tuple[str, ...], Tuple[float, ...], None]:
-        x = yield "spam", "spam", "spam", "spam"  # noqa
+        _ = yield "spam", "spam", "spam", "spam"  # noqa
 
     expected = cleandoc(
         """
@@ -1374,6 +1454,8 @@ def test_receives_named_multi_typed_ellipsis():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    # receives section not recognised by numpydoc validate
+    validate(foo, allow={"GL06", "GL07"})
 
 
 def test_receives_extra_name():
@@ -1478,27 +1560,28 @@ def test_other_parameters():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     Other Parameters
     ----------------
-    spam
+    spam :
         You'll love it.
-    eggs
+    eggs :
         Good with spam.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_other_parameters_typed():
@@ -1547,6 +1630,7 @@ def test_other_parameters_typed():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_extra_other_param():
@@ -1621,14 +1705,14 @@ def test_raises_warns_warnings():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     Raises
@@ -1653,6 +1737,7 @@ def test_raises_warns_warnings():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_see_also_string():
@@ -1677,14 +1762,14 @@ def test_see_also_string():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     See Also
@@ -1695,6 +1780,7 @@ def test_see_also_string():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_see_also_sequence():
@@ -1719,14 +1805,14 @@ def test_see_also_sequence():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     See Also
@@ -1739,6 +1825,7 @@ def test_see_also_sequence():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_see_also_mapping():
@@ -1768,14 +1855,14 @@ def test_see_also_mapping():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     See Also
@@ -1791,6 +1878,7 @@ def test_see_also_mapping():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_notes():
@@ -1809,7 +1897,7 @@ def test_notes():
 
             .. math:: X(e^{j\omega } ) = x(n)e^{ - j\omega n}
 
-            The discrete-time Fourier time-convolution property states that
+            The discrete-time Fourier time-convolution property states that:
 
             .. math::
 
@@ -1829,14 +1917,14 @@ def test_notes():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     Notes
@@ -1845,7 +1933,7 @@ def test_notes():
 
     .. math:: X(e^{j\omega } ) = x(n)e^{ - j\omega n}
 
-    The discrete-time Fourier time-convolution property states that
+    The discrete-time Fourier time-convolution property states that:
 
     .. math::
 
@@ -1865,6 +1953,7 @@ def test_notes():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_references():
@@ -1895,14 +1984,14 @@ def test_references():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     Notes
@@ -1921,6 +2010,7 @@ def test_references():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
 def test_examples():
@@ -1971,14 +2061,14 @@ def test_examples():
 
     Parameters
     ----------
-    bar
+    bar :
         This is very bar.
-    baz
+    baz :
         This is totally baz.
 
     Returns
     -------
-    qux
+    qux :
         Amazingly qux.
 
     Examples
@@ -2019,8 +2109,10 @@ def test_examples():
     )
     actual = getdoc(foo)
     compare(actual, expected)
+    validate(foo)
 
 
+# noinspection PyUnusedLocal
 @doc(
     summary="Compute the arithmetic mean along the specified axis.",
     extended_summary="""
@@ -2195,7 +2287,7 @@ def test_numpy_mean():
 
     See Also
     --------
-    average : Weighted average
+    average : Weighted average.
     std
     var
     nanmean
@@ -2252,6 +2344,7 @@ def test_numpy_mean():
 
     actual = getdoc(numpy_mean)
     compare(actual, expected)
+    validate(numpy_mean)
 
 
 def test_example():
@@ -2259,7 +2352,7 @@ def test_example():
 
     expected = cleandoc(
         """
-    This function will say hello.
+    Say hello to someone.
 
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
     eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
@@ -2319,3 +2412,4 @@ def test_example():
 
     actual = getdoc(greet)
     compare(actual, expected)
+    validate(greet)

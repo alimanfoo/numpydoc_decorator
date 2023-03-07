@@ -27,8 +27,17 @@ class DocumentationError(Exception):
     pass
 
 
+def punctuate(s):
+    if s:
+        s = s.strip()
+        s = s[0].capitalize() + s[1:]
+        if s[-1] not in ".!?:":
+            s += "."
+    return s
+
+
 def format_paragraph(s):
-    return fill(dedent(s.strip(newline))) + newline
+    return fill(punctuate(dedent(s.strip(newline)))) + newline
 
 
 def format_indented_paragraph(s):
@@ -50,7 +59,7 @@ def format_paragraphs(s):
             docstring += paragraph + newline + newline
         else:
             # fill
-            docstring += fill(paragraph) + newline + newline
+            docstring += fill(punctuate(paragraph)) + newline + newline
     return docstring
 
 
@@ -70,24 +79,30 @@ def format_parameters(parameters, sig):
             # account for documentation of parameters and other parameters separately
             continue
 
-        # add markers for variable parameters
+        # add parameter name, accounting for variable parameters
         if param.kind == Parameter.VAR_POSITIONAL:
-            docstring += "*"
+            # *args
+            docstring += "*" + param_name
+
         elif param.kind == Parameter.VAR_KEYWORD:
-            docstring += "**"
+            # **kwargs
+            docstring += "**" + param_name
 
-        # add parameter name
-        docstring += param_name
+        else:
+            # standard parameter
+            docstring += param_name + " :"
 
-        # handle type annotation
-        if param.annotation is not Parameter.empty:
-            docstring += f" : {format_type(param.annotation)}"
+            # handle type annotation
+            if param.annotation is not Parameter.empty:
+                docstring += " " + format_type(param.annotation)
 
-        # handle default value
-        if param.default is not Parameter.empty:
-            docstring += ", optional"
-            if param.default is not None:
-                docstring += f", default: {param.default!r}"
+            # handle default value
+            if param.default is not Parameter.empty:
+                if param.annotation is not Parameter.empty:
+                    docstring += ","
+                docstring += " optional"
+                if param.default is not None:
+                    docstring += f", default: {param.default!r}"
 
         # add parameter description
         docstring += newline
@@ -185,9 +200,9 @@ def format_returns_named(returns, return_annotation):
         )
 
     for (return_name, return_doc), return_type in zip(returns.items(), return_types):
-        docstring += return_name.strip()
+        docstring += return_name.strip() + " :"
         if return_type is not Parameter.empty:
-            docstring += f" : {format_type(return_type)}"
+            docstring += f" {format_type(return_type)}"
         docstring += newline
         docstring += format_indented_paragraph(return_doc)
     docstring += newline
@@ -303,7 +318,7 @@ def format_see_also(see_also):
             if description:
                 docstring += " :"
                 if len(description) < 70:
-                    docstring += " " + description.strip() + newline
+                    docstring += " " + punctuate(description.strip()) + newline
                 else:
                     docstring += newline
                     docstring += format_indented_paragraph(description)
@@ -522,7 +537,7 @@ def doc(
             docstring += format_paragraphs(examples)
 
         # final cleanup
-        docstring = cleandoc(docstring)
+        docstring = newline + cleandoc(docstring) + newline
 
         f.__doc__ = docstring
         return f
