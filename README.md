@@ -107,7 +107,7 @@ Parameters
 ----------
 name : str
     The name of the person to greet.
-language : str, optional, default='en'
+language : str, optional, default: 'en'
     The language in which to greet as an ISO 639-1 code.
 
 Returns
