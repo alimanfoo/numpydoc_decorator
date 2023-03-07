@@ -3,7 +3,14 @@ from inspect import Parameter, cleandoc, signature
 from textwrap import dedent, fill, indent
 from typing import Mapping, Optional, Sequence, Union
 
-from numpy.typing import ArrayLike, DTypeLike
+try:
+    # check whether numpy is installed
+    import numpy
+    from numpy.typing import ArrayLike, DTypeLike
+except ImportError:
+    numpy = None
+    ArrayLike = None
+    DTypeLike = None
 
 try:
     from typing import get_args as typing_get_args
@@ -97,16 +104,16 @@ def format_type(t):
     if t == type(None):  # noqa
         return "None"
 
-    elif t == ArrayLike:
+    elif numpy and t == ArrayLike:
         return "array_like"
 
-    elif t == Optional[ArrayLike]:
+    elif numpy and t == Optional[ArrayLike]:
         return "array_like or None"
 
-    elif t == DTypeLike:
+    elif numpy and t == DTypeLike:
         return "data-type"
 
-    elif t == Optional[DTypeLike]:
+    elif numpy and t == Optional[DTypeLike]:
         return "data-type or None"
 
     # special handling for union types
