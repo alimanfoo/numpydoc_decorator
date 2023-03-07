@@ -1280,7 +1280,7 @@ def test_receives_named_multi():
         ),
     )
     def foo():
-        x, y = yield "hello", 42
+        _, _ = yield "hello", 42
 
     expected = cleandoc(
         """
@@ -1319,7 +1319,7 @@ def test_receives_named_multi_typed():
         ),
     )
     def foo() -> Generator[Tuple[str, int], Tuple[float, bool], None]:
-        x, y = yield "hello", 42
+        _, _ = yield "hello", 42
 
     expected = cleandoc(
         """
@@ -1354,7 +1354,7 @@ def test_receives_named_multi_typed_ellipsis():
         receives=dict(eggs="Good with spam."),
     )
     def foo() -> Generator[Tuple[str, ...], Tuple[float, ...], None]:
-        x = yield "spam", "spam", "spam", "spam"  # noqa
+        _ = yield "spam", "spam", "spam", "spam"  # noqa
 
     expected = cleandoc(
         """
@@ -2021,6 +2021,7 @@ def test_examples():
     compare(actual, expected)
 
 
+# noinspection PyUnusedLocal
 @doc(
     summary="Compute the arithmetic mean along the specified axis.",
     extended_summary="""
