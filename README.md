@@ -27,7 +27,7 @@ from numpydoc_decorator import doc
 
 
 @doc(
-    summary="This function will say hello.",
+    summary="Say hello to someone.",
     extended_summary="""
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
         eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
@@ -39,7 +39,7 @@ from numpydoc_decorator import doc
     """,
     parameters=dict(
         name="The name of the person to greet.",
-        language="The language in which to greet as an ISO 639-1 code."
+        language="The language in which to greet as an ISO 639-1 code.",
     ),
     returns=dict(
         greeting="A pleasant greeting.",
@@ -93,7 +93,8 @@ decorated function:
 
 ```
 >>> print(greet.__doc__)
-This function will say hello.
+
+Say hello to someone.
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
@@ -147,6 +148,7 @@ Here is how to greet someone in another language:
 
 >>> print(greet("Tricia MacMillan", language="fr"))
 Salut Tricia MacMillan!
+
 ```
 
 
