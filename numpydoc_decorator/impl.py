@@ -87,7 +87,7 @@ def format_parameters(parameters, sig):
         if param.default is not Parameter.empty:
             docstring += ", optional"
             if param.default is not None:
-                docstring += f", default={param.default!r}"
+                docstring += f", default: {param.default!r}"
 
         # add parameter description
         docstring += newline

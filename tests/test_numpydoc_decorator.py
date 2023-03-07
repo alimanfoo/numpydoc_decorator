@@ -637,11 +637,11 @@ def test_parameter_defaults():
     ----------
     bar
         This is very bar.
-    baz, optional, default='spam'
+    baz, optional, default: 'spam'
         This is totally baz.
-    qux, optional, default=42
+    qux, optional, default: 42
         Amazingly qux.
-    spam, optional, default=True
+    spam, optional, default: True
         You'll love it.
     eggs, optional
         Good with spam.
@@ -681,11 +681,11 @@ def test_parameter_defaults_typed():
     ----------
     bar : str
         This is very bar.
-    baz : str, optional, default='spam'
+    baz : str, optional, default: 'spam'
         This is totally baz.
-    qux : int, optional, default=42
+    qux : int, optional, default: 42
         Amazingly qux.
-    spam : bool, optional, default=True
+    spam : bool, optional, default: True
         You'll love it.
     eggs : Sequence or None, optional
         Good with spam.
@@ -2273,7 +2273,7 @@ def test_example():
     ----------
     name : str
         The name of the person to greet.
-    language : str, optional, default='en'
+    language : str, optional, default: 'en'
         The language in which to greet as an ISO 639-1 code.
 
     Returns
