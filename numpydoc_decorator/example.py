@@ -2,7 +2,7 @@ from numpydoc_decorator import doc
 
 
 @doc(
-    summary="This function will say hello.",
+    summary="Say hello to someone.",
     extended_summary="""
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
         eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
