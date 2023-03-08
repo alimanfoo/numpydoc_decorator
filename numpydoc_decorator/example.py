@@ -16,11 +16,10 @@ from numpydoc_decorator import doc
         name="The name of the person to greet.",
         language="The language in which to greet as an ISO 639-1 code.",
     ),
-    returns=dict(
-        greeting="A pleasant greeting.",
-    ),
+    returns="A pleasant greeting.",
     raises=dict(
         NotImplementedError="If the requested language has not been implemented yet.",
+        ValueError="If the language is not a valid ISO 639-1 code.",
     ),
     see_also=dict(
         print="You could use this function to print your greeting.",
@@ -55,6 +54,8 @@ def greet(
     name: str,
     language: str = "en",
 ) -> str:
+    if len(language) != 2:
+        raise ValueError("language must be an ISO 639-1 code")
     if language == "en":
         return f"Hello {name}!"
     elif language == "fr":
