@@ -41,11 +41,10 @@ from numpydoc_decorator import doc
         name="The name of the person to greet.",
         language="The language in which to greet as an ISO 639-1 code.",
     ),
-    returns=dict(
-        greeting="A pleasant greeting.",
-    ),
+    returns="A pleasant greeting.",
     raises=dict(
         NotImplementedError="If the requested language has not been implemented yet.",
+        ValueError="If the language is not a valid ISO 639-1 code."
     ),
     see_also=dict(
         print="You could use this function to print your greeting.",
@@ -80,6 +79,8 @@ def greet(
     name: str,
     language: str = "en",
 ) -> str:
+    if len(language) != 2:
+        raise ValueError("language must be an ISO 639-1 code")
     if language == "en":
         return f"Hello {name}!"
     elif language == "fr":
@@ -113,13 +114,15 @@ language : str, optional, default: 'en'
 
 Returns
 -------
-greeting : str
+str
     A pleasant greeting.
 
 Raises
 ------
 NotImplementedError
     If the requested language has not been implemented yet.
+ValueError
+    If the language is not a valid ISO 639-1 code.
 
 See Also
 --------
@@ -152,9 +155,17 @@ Salut Tricia MacMillan!
 ```
 
 
-## Caveats
+## Notes
 
 There are probably lots of edge cases that this package has not
 covered yet. If you find something doesn't work as expected, or
-deviates from the numpydoc style guide in an unreasonable way, please
-feel free to submit a pull request.
+deviates from the [numpydoc style guide](https://numpydoc.readthedocs.io/en/latest/format.html)
+in an unreasonable way, please feel free to submit a pull request.
+
+Note that this package does deviate from the numpydoc style guide
+under some circumstances. For example, if a function does not have
+any type annotations, then there will be no type information in the
+docstring. The rationale for this is that all type information, if
+provided, should be provided through type annotations. However, some
+functions may choose not to annotate types for some or all parameters,
+but we still want to document them as best we can.

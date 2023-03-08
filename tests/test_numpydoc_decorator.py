@@ -2371,13 +2371,15 @@ def test_example():
 
     Returns
     -------
-    greeting : str
+    str
         A pleasant greeting.
 
     Raises
     ------
     NotImplementedError
         If the requested language has not been implemented yet.
+    ValueError
+        If the language is not a valid ISO 639-1 code.
 
     See Also
     --------
