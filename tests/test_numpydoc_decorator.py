@@ -206,21 +206,45 @@ def test_missing_params():
 
 
 def test_extra_param():
-    with pytest.raises(DocumentationError):
-        # noinspection PyUnusedLocal
-        @doc(
-            summary="A function with simple parameters.",
-            parameters=dict(
-                bar="This is very bar.",
-                baz="This is totally baz.",
-                spam="This parameter is not in the signature.",
-            ),
-            returns=dict(
-                qux="Amazingly qux.",
-            ),
-        )
-        def foo(bar, baz):
-            pass
+    # Be relaxed about this, can be convenient because it allows chucking in
+    # everything from a bag of parameters, and only those which are in the
+    # function signature are used.
+
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with simple parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            spam="This parameter is not in the signature.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+    )
+    def foo(bar, baz):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with simple parameters.
+
+    Parameters
+    ----------
+    bar :
+        This is very bar.
+    baz :
+        This is totally baz.
+
+    Returns
+    -------
+    qux :
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
 
 
 def test_parameter_order():
@@ -1653,24 +1677,50 @@ def test_other_parameters_typed():
 
 
 def test_extra_other_param():
-    with pytest.raises(DocumentationError):
-        # noinspection PyUnusedLocal
-        @doc(
-            summary="A function with simple parameters.",
-            parameters=dict(
-                bar="This is very bar.",
-                baz="This is totally baz.",
-            ),
-            returns=dict(
-                qux="Amazingly qux.",
-            ),
-            other_parameters=dict(
-                spam="You'll love it.",
-                eggs="Good with spam.",
-            ),
-        )
-        def foo(bar, baz, spam):
-            pass
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with other parameters.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+        ),
+        returns=dict(
+            qux="Amazingly qux.",
+        ),
+        other_parameters=dict(
+            spam="You'll love it.",
+            eggs="Good with spam.",
+        ),
+    )
+    def foo(bar, baz, spam):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with other parameters.
+
+    Parameters
+    ----------
+    bar :
+        This is very bar.
+    baz :
+        This is totally baz.
+
+    Returns
+    -------
+    qux :
+        Amazingly qux.
+
+    Other Parameters
+    ----------------
+    spam :
+        You'll love it.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
 
 
 def test_missing_other_param():
