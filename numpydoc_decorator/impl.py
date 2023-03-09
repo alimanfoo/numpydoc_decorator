@@ -1,7 +1,16 @@
 from collections.abc import Generator, Iterable, Iterator
-from inspect import Parameter, cleandoc, signature
+from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Mapping, Optional, Sequence, Union
+from typing import Callable, List, Mapping, Optional, Sequence, Tuple, Union
+
+from typing_extensions import Literal
+from typing_extensions import get_args as typing_get_args
+from typing_extensions import get_origin as typing_get_origin
+
+try:
+    from types import NoneType
+except ImportError:
+    NoneType = type(None)
 
 try:
     # check whether numpy is installed
@@ -12,13 +21,6 @@ except ImportError:
     ArrayLike = None
     DTypeLike = None
 
-try:
-    from typing import get_args as typing_get_args
-    from typing import get_origin as typing_get_origin
-except ImportError:
-    from typing_extensions import get_args as typing_get_args
-    from typing_extensions import get_origin as typing_get_origin
-
 
 newline = "\n"
 
@@ -27,7 +29,10 @@ class DocumentationError(Exception):
     pass
 
 
-def punctuate(s):
+def punctuate(s: str):
+    # This is possibly controversial, should we be enforcing punctuation? Will
+    # do so for now, as it is easy to forget a full stop at the end of a
+    # piece of documentation, but looks better if punctuation is consistent.
     if s:
         s = s.strip()
         s = s[0].capitalize() + s[1:]
@@ -36,15 +41,15 @@ def punctuate(s):
     return s
 
 
-def format_paragraph(s):
+def format_paragraph(s: str):
     return fill(punctuate(dedent(s.strip(newline)))) + newline
 
 
-def format_indented_paragraph(s):
+def format_indented_paragraph(s: str):
     return indent(format_paragraph(s), prefix="    ")
 
 
-def format_paragraphs(s):
+def format_paragraphs(s: str):
     prep = dedent(s.strip(newline))
     paragraphs = prep.split(newline + newline)
     docstring = ""
@@ -63,11 +68,11 @@ def format_paragraphs(s):
     return docstring
 
 
-def format_indented_paragraphs(s):
+def format_indented_paragraphs(s: str):
     return indent(format_paragraphs(s), prefix="    ")
 
 
-def format_parameters(parameters, sig):
+def format_parameters(parameters: Mapping[str, str], sig: Signature):
     docstring = ""
     # display parameters in order given in function signature
     for param_name, param in sig.parameters.items():
@@ -115,8 +120,10 @@ def format_parameters(parameters, sig):
 
 def format_type(t):
     # This is probably a bit hacky, could be improved.
+    t_orig = typing_get_origin(t)
+    t_args = typing_get_args(t)
 
-    if t == type(None):  # noqa
+    if t == NoneType:
         return "None"
 
     elif numpy and t == ArrayLike:
@@ -132,22 +139,37 @@ def format_type(t):
         return "data-type or None"
 
     # special handling for union types
-    elif typing_get_origin(t) == Union and typing_get_args(t):
-        return " or ".join([format_type(x) for x in typing_get_args(t)])
+    elif t_orig == Union and t_args:
+        return " or ".join([format_type(x) for x in t_args])
 
-    elif typing_get_origin(t) == Optional and typing_get_args(t):
-        x = typing_get_args(t)[0]
+    elif t_orig == Optional and t_args:
+        x = t_args[0]
         return format_type(x) + " or None"
+
+    # humanize Literal types
+    elif t_orig == Literal and t_args:
+        return "{" + ", ".join([repr(i) for i in t_args]) + "}"
+
+    # humanize sequence types
+    elif t_orig in [list, List, Sequence] and t_args:
+        x = t_args[0]
+        return format_type(t_orig).lower() + " of " + format_type(x)
+
+    # humanize variable length tuples
+    elif t_orig in [tuple, Tuple] and t_args and Ellipsis in t_args:
+        x = t_args[0]
+        return "tuple of " + format_type(x)
 
     else:
         s = repr(t)
+        # deal with built-in classes like int, etc.
         if s.startswith("<class"):
             s = t.__name__
         s = s.replace("typing.", "")
         return s
 
 
-def format_returns(returns, sig):
+def format_returns(returns: Union[str, Mapping[str, str]], sig: Signature):
     if isinstance(returns, str):
         return format_returns_unnamed(returns, sig.return_annotation)
     elif isinstance(returns, Mapping):
@@ -156,7 +178,7 @@ def format_returns(returns, sig):
         raise TypeError("returns must be str or Mapping")
 
 
-def format_returns_unnamed(returns, return_annotation):
+def format_returns_unnamed(returns: str, return_annotation):
     if return_annotation is Parameter.empty:
         # just assume it's a description of the return value
         docstring = format_paragraph(returns)
@@ -168,7 +190,7 @@ def format_returns_unnamed(returns, return_annotation):
     return docstring
 
 
-def format_returns_named(returns, return_annotation):
+def format_returns_named(returns: Mapping[str, str], return_annotation):
     docstring = ""
 
     if return_annotation is Parameter.empty:
@@ -210,7 +232,7 @@ def format_returns_named(returns, return_annotation):
     return docstring
 
 
-def get_yield_annotation(sig):
+def get_yield_annotation(sig: Signature):
     return_annotation = sig.return_annotation
 
     if return_annotation is Parameter.empty:
@@ -237,7 +259,7 @@ def get_yield_annotation(sig):
         return yield_annotation
 
 
-def get_send_annotation(sig):
+def get_send_annotation(sig: Signature):
     return_annotation = sig.return_annotation
 
     if return_annotation is Parameter.empty:
@@ -264,7 +286,7 @@ def get_send_annotation(sig):
         return send_annotation
 
 
-def format_yields(yields, sig):
+def format_yields(yields: Union[str, Mapping[str, str]], sig: Signature):
     # yields section is basically the same as the returns section, except we
     # need to access the YieldType annotation from within the return annotation
     if isinstance(yields, str):
@@ -275,7 +297,7 @@ def format_yields(yields, sig):
         raise TypeError("yields must be str or Mapping")
 
 
-def format_receives(receives, sig):
+def format_receives(receives: Union[str, Mapping[str, str]], sig: Signature):
     # receives section is basically the same as the returns section, except we
     # need to access the SendType annotation from within the return annotation
     if isinstance(receives, str):
@@ -286,7 +308,7 @@ def format_receives(receives, sig):
         raise TypeError("receives must be str or Mapping")
 
 
-def format_raises(raises):
+def format_raises(raises: Mapping[str, str]):
     docstring = ""
     for error, description in raises.items():
         docstring += error + newline
@@ -299,11 +321,7 @@ def format_maybe_code(obj):
 
 
 def format_see_also(see_also):
-    if isinstance(see_also, str):
-        # assume a single function
-        return format_maybe_code(see_also).strip() + newline
-
-    elif isinstance(see_also, Sequence):
+    if isinstance(see_also, (list, tuple)):
         # assume a sequence of functions
         docstring = ""
         for item in see_also:
@@ -326,8 +344,12 @@ def format_see_also(see_also):
                 docstring += newline
         return docstring
 
+    else:
+        # assume a single function
+        return format_maybe_code(see_also).strip() + newline
 
-def format_references(references):
+
+def format_references(references: Mapping[str, str]):
     docstring = ""
     for ref, desc in references.items():
         docstring += f".. [{ref}] "
@@ -352,7 +374,7 @@ def doc(
     notes: Optional[str] = None,
     references: Optional[Mapping[str, str]] = None,
     examples: Optional[str] = None,
-):
+) -> Callable[[Callable], Callable]:
     """Provide documentation for a function or method, to be formatted as a
     numpy-style docstring (numpydoc).
 
@@ -422,7 +444,7 @@ def doc(
     if receives and not yields:
         raise DocumentationError("if receives, must also have yields")
 
-    def decorator(f):
+    def decorator(f: Callable) -> Callable:
         docstring = ""
 
         # check parameters against function signature
