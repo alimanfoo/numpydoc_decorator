@@ -447,21 +447,14 @@ def doc(
     def decorator(f: Callable) -> Callable:
         docstring = ""
 
-        # check parameters against function signature
+        # check for missing parameters
         sig = signature(f)
         for e in sig.parameters:
             if e != "self" and e not in all_parameters:
                 raise DocumentationError(f"Parameter {e} not documented.")
-        for g in parameters:
-            if g not in sig.parameters:
-                raise DocumentationError(
-                    f"Parameter {g} not found in function signature."
-                )
-        for g in other_parameters:
-            if g not in sig.parameters:
-                raise DocumentationError(
-                    f"Other parameter {g} not found in function signature."
-                )
+
+        # N.B., intentionally allow extra parameters which are not in the
+        # signature - this can be convenient for the user.
 
         # add summary
         if summary:
