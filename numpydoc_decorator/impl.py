@@ -161,7 +161,10 @@ def format_type(t):
         return "tuple of " + format_type(x)
 
     else:
-        s = getattr(t, "__name__", repr(t))
+        s = repr(t)
+        # deal with built-in classes like int, etc.
+        if s.startswith("<class"):
+            s = t.__name__
         s = s.replace("typing.", "")
         return s
 
