@@ -1,7 +1,11 @@
 from collections.abc import Generator, Iterable, Iterator
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Callable, Mapping, Optional, Sequence, Union
+from typing import Callable, List, Mapping, Optional, Sequence, Tuple, Union
+
+from typing_extensions import Literal
+from typing_extensions import get_args as typing_get_args
+from typing_extensions import get_origin as typing_get_origin
 
 try:
     from types import NoneType
@@ -16,13 +20,6 @@ except ImportError:
     numpy = None
     ArrayLike = None
     DTypeLike = None
-
-try:
-    from typing import get_args as typing_get_args
-    from typing import get_origin as typing_get_origin
-except ImportError:
-    from typing_extensions import get_args as typing_get_args
-    from typing_extensions import get_origin as typing_get_origin
 
 
 newline = "\n"
@@ -123,6 +120,8 @@ def format_parameters(parameters: Mapping[str, str], sig: Signature):
 
 def format_type(t):
     # This is probably a bit hacky, could be improved.
+    t_orig = typing_get_origin(t)
+    t_args = typing_get_args(t)
 
     if t == NoneType:
         return "None"
@@ -140,17 +139,29 @@ def format_type(t):
         return "data-type or None"
 
     # special handling for union types
-    elif typing_get_origin(t) == Union and typing_get_args(t):
-        return " or ".join([format_type(x) for x in typing_get_args(t)])
+    elif t_orig == Union and t_args:
+        return " or ".join([format_type(x) for x in t_args])
 
-    elif typing_get_origin(t) == Optional and typing_get_args(t):
-        x = typing_get_args(t)[0]
+    elif t_orig == Optional and t_args:
+        x = t_args[0]
         return format_type(x) + " or None"
 
+    # humanize Literal types
+    elif t_orig == Literal and t_args:
+        return "{" + ", ".join([repr(i) for i in t_args]) + "}"
+
+    # humanize sequence types
+    elif t_orig in [list, List, Sequence] and t_args:
+        x = t_args[0]
+        return format_type(t_orig).lower() + " of " + format_type(x)
+
+    # humanize variable length tuples
+    elif t_orig in [tuple, Tuple] and t_args and Ellipsis in t_args:
+        x = t_args[0]
+        return "tuple of " + format_type(x)
+
     else:
-        s = repr(t)
-        if s.startswith("<class"):
-            s = t.__name__
+        s = getattr(t, "__name__", repr(t))
         s = s.replace("typing.", "")
         return s
 

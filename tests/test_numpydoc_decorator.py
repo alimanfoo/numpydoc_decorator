@@ -1,6 +1,16 @@
 from collections.abc import Mapping
 from inspect import cleandoc, getdoc
-from typing import Dict, Generator, Iterable, Iterator, Optional, Sequence, Tuple, Union
+from typing import (
+    Dict,
+    Generator,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import numpy
 import pytest
@@ -8,6 +18,7 @@ from numpy.typing import ArrayLike, DTypeLike
 from numpydoc.docscrape import FunctionDoc
 from numpydoc.validate import validate as numpydoc_validate
 from testfixtures import compare
+from typing_extensions import Literal
 
 from numpydoc_decorator import DocumentationError, doc
 
@@ -250,17 +261,21 @@ def test_parameter_types():
         parameters=dict(
             bar="This is very bar.",
             baz="This is totally baz.",
-            qux="Many strings.",
+            qux="Many values.",
             spam="You'll love it.",
             eggs="Good with spam.",
+            bacon="Good with eggs.",
+            sausage="Good with bacon.",
         ),
     )
     def foo(
         bar: int,
         baz: str,
-        qux: Sequence[str],
+        qux: Sequence,
         spam: Union[list, str],
         eggs: Dict[str, Sequence],
+        bacon: Literal["xxx", "yyy", "zzz"],
+        sausage: List[int],
     ):
         pass
 
@@ -274,12 +289,16 @@ def test_parameter_types():
         This is very bar.
     baz : str
         This is totally baz.
-    qux : Sequence[str]
-        Many strings.
+    qux : Sequence
+        Many values.
     spam : list or str
         You'll love it.
     eggs : Dict[str, Sequence]
         Good with spam.
+    bacon : {'xxx', 'yyy', 'zzz'}
+        Good with eggs.
+    sausage : list of int
+        Good with bacon.
 
     """
     )
@@ -462,7 +481,7 @@ def test_returns_named_multi_typed_ellipsis():
 
     Returns
     -------
-    spam : Tuple[str, ...]
+    spam : tuple of str
         The more the better.
 
     """
@@ -1079,7 +1098,7 @@ def test_yields_named_multi_typed_ellipsis():
 
     Yields
     ------
-    spam : Tuple[str, ...]
+    spam : tuple of str
         The more the better.
 
     """
@@ -1442,12 +1461,12 @@ def test_receives_named_multi_typed_ellipsis():
 
     Yields
     ------
-    spam : Tuple[str, ...]
+    spam : tuple of str
         The more the better.
 
     Receives
     --------
-    eggs : Tuple[float, ...]
+    eggs : tuple of float
         Good with spam.
 
     """
@@ -2247,7 +2266,7 @@ def test_numpy_mean():
     a : array_like
         Array containing numbers whose mean is desired. If `a` is not an
         array, a conversion is attempted.
-    axis : int or Tuple[int, ...] or None, optional
+    axis : int or tuple of int or None, optional
         Axis or axes along which the means are computed. The default is to
         compute the mean of the flattened array.
 
