@@ -1,7 +1,9 @@
-from collections.abc import Generator, Iterable, Iterator
+from collections.abc import Generator, Iterable, Iterator, Sequence
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Callable, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Callable, List, Mapping, Optional
+from typing import Sequence as SequenceType
+from typing import Tuple, Union
 
 from typing_extensions import Literal
 from typing_extensions import get_args as typing_get_args
@@ -151,7 +153,7 @@ def format_type(t):
         return "{" + ", ".join([repr(i) for i in t_args]) + "}"
 
     # humanize sequence types
-    elif t_orig in [list, List, Sequence] and t_args:
+    elif t_orig in [list, List, Sequence, SequenceType] and t_args:
         x = t_args[0]
         return format_type(t_orig).lower() + " of " + format_type(x)
 
@@ -370,7 +372,7 @@ def doc(
     raises: Optional[Mapping[str, str]] = None,
     warns: Optional[Mapping[str, str]] = None,
     warnings: Optional[str] = None,
-    see_also: Optional[Union[str, Sequence[str], Mapping[str, str]]] = None,
+    see_also: Optional[Union[str, SequenceType[str], Mapping[str, str]]] = None,
     notes: Optional[str] = None,
     references: Optional[Mapping[str, str]] = None,
     examples: Optional[str] = None,
@@ -406,7 +408,7 @@ def doc(
         conditions.
     warnings : str, optional
         An optional section with cautions to the user in free text/reST.
-    see_also : str or Sequence[str] or Mapping[str, str], optional
+    see_also : str or sequence of str or Mapping[str, str], optional
         An optional section used to refer to related code.
     notes : str, optional
         An optional section that provides additional information about the code,

@@ -290,6 +290,8 @@ def test_parameter_types():
             eggs="Good with spam.",
             bacon="Good with eggs.",
             sausage="Good with bacon.",
+            lobster="Good with sausage.",
+            thermidor="A type of lobster dish.",
         ),
     )
     def foo(
@@ -300,6 +302,8 @@ def test_parameter_types():
         eggs: Dict[str, Sequence],
         bacon: Literal["xxx", "yyy", "zzz"],
         sausage: List[int],
+        lobster: Tuple[float, ...],
+        thermidor: Sequence[str],
     ):
         pass
 
@@ -323,6 +327,10 @@ def test_parameter_types():
         Good with eggs.
     sausage : list of int
         Good with bacon.
+    lobster : tuple of float
+        Good with sausage.
+    thermidor : sequence of str
+        A type of lobster dish.
 
     """
     )
