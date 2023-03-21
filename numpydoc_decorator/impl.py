@@ -5,7 +5,7 @@ from typing import Callable, List, Mapping, Optional
 from typing import Sequence as SequenceType
 from typing import Tuple, Union
 
-from typing_extensions import Literal
+from typing_extensions import Annotated, Literal
 from typing_extensions import get_args as typing_get_args
 from typing_extensions import get_origin as typing_get_origin
 
@@ -114,6 +114,10 @@ def format_parameters(parameters: Mapping[str, str], sig: Signature):
         # add parameter description
         docstring += newline
         param_doc = parameters[param_name]
+        # accommodate use of Annotated types here
+        if typing_get_origin(param_doc) == Annotated:
+            # assume first annotation provides documentation
+            param_doc = typing_get_args(param_doc)[1]
         docstring += format_indented_paragraphs(param_doc).strip(newline)
         docstring += newline
 
@@ -139,6 +143,11 @@ def format_type(t):
 
     elif numpy and t == Optional[DTypeLike]:
         return "data-type or None"
+
+    # special handling for annotated types
+    elif t_orig == Annotated:
+        x = t_args[0]
+        return format_type(x)
 
     # special handling for union types
     elif t_orig == Union and t_args:
@@ -436,9 +445,6 @@ def doc(
         parameters = dict()
     if other_parameters is None:
         other_parameters = dict()
-    all_parameters = dict()
-    all_parameters.update(parameters)
-    all_parameters.update(other_parameters)
 
     if returns and yields:
         raise DocumentationError("cannot have both returns and yields")
@@ -449,8 +455,31 @@ def doc(
     def decorator(f: Callable) -> Callable:
         docstring = ""
 
-        # check for missing parameters
         sig = signature(f)
+
+        # accommodate use of Annotated types for parameters documentation
+        for param_name, param in sig.parameters.items():
+            t = param.annotation
+            if typing_get_origin(t) == Annotated:
+                # assume first annotation provides documentation
+                x = typing_get_args(t)[1]
+                if isinstance(x, str):
+                    parameters.setdefault(param_name, x)
+
+        # accommodate use of Annotated types for returns documentation
+        return_annotation = sig.return_annotation
+        returns_doc = returns
+        if returns_doc is None:
+            if typing_get_origin(return_annotation) == Annotated:
+                # assume first annotation provides documentation
+                x = typing_get_args(return_annotation)[1]
+                if isinstance(x, str):
+                    returns_doc = x
+
+        # check for missing parameters
+        all_parameters = dict()
+        all_parameters.update(parameters)
+        all_parameters.update(other_parameters)
         for e in sig.parameters:
             if e != "self" and e not in all_parameters:
                 raise DocumentationError(f"Parameter {e} not documented.")
@@ -482,10 +511,10 @@ def doc(
             docstring += newline
 
         # add returns section
-        if returns:
+        if returns_doc:
             docstring += "Returns" + newline
             docstring += "-------" + newline
-            docstring += format_returns(returns, sig)
+            docstring += format_returns(returns_doc, sig)
 
         # add yields section
         if yields:
