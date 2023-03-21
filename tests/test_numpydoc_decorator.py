@@ -18,7 +18,7 @@ from numpy.typing import ArrayLike, DTypeLike
 from numpydoc.docscrape import FunctionDoc
 from numpydoc.validate import validate as numpydoc_validate
 from testfixtures import compare
-from typing_extensions import Literal
+from typing_extensions import Annotated, Literal
 
 from numpydoc_decorator import DocumentationError, doc
 
@@ -247,7 +247,7 @@ def test_extra_param():
     validate(foo)
 
 
-def test_parameter_order():
+def test_parameters_order():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with typed parameters.",
@@ -278,7 +278,11 @@ def test_parameter_order():
     validate(foo)
 
 
-def test_parameter_types():
+def test_parameters_typed():
+    # Support use of Annotated to keep type information and
+    # documentation together, assuming second argument provides
+    # the documentation.
+
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with typed parameters.",
@@ -292,6 +296,7 @@ def test_parameter_types():
             sausage="Good with bacon.",
             lobster="Good with sausage.",
             thermidor="A type of lobster dish.",
+            # norwegian_blue not needed, will be picked up from Annotated type
         ),
     )
     def foo(
@@ -304,6 +309,7 @@ def test_parameter_types():
         sausage: List[int],
         lobster: Tuple[float, ...],
         thermidor: Sequence[str],
+        norwegian_blue: Annotated[str, "This is an ex-parrot."],
     ):
         pass
 
@@ -331,6 +337,65 @@ def test_parameter_types():
         Good with sausage.
     thermidor : sequence of str
         A type of lobster dish.
+    norwegian_blue : str
+        This is an ex-parrot.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
+
+
+def test_parameters_all_annotated():
+    # Support use of Annotated to keep type information and
+    # documentation together, assuming second argument provides
+    # the documentation.
+
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function with annotated parameters.",
+    )
+    def foo(
+        bar: Annotated[int, "This is very bar."],
+        baz: Annotated[str, "This is totally baz."],
+        qux: Annotated[Sequence, "Many values."],
+        spam: Annotated[Union[list, str], "You'll love it."],
+        eggs: Annotated[Dict[str, Sequence], "Good with spam."],
+        bacon: Annotated[Literal["xxx", "yyy", "zzz"], "Good with eggs."],
+        sausage: Annotated[List[int], "Good with bacon."],
+        lobster: Annotated[Tuple[float, ...], "Good with sausage."],
+        thermidor: Annotated[Sequence[str], "A type of lobster dish."],
+        norwegian_blue: Annotated[str, "This is an ex-parrot."],
+    ):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with annotated parameters.
+
+    Parameters
+    ----------
+    bar : int
+        This is very bar.
+    baz : str
+        This is totally baz.
+    qux : Sequence
+        Many values.
+    spam : list or str
+        You'll love it.
+    eggs : Dict[str, Sequence]
+        Good with spam.
+    bacon : {'xxx', 'yyy', 'zzz'}
+        Good with eggs.
+    sausage : list of int
+        Good with bacon.
+    lobster : tuple of float
+        Good with sausage.
+    thermidor : sequence of str
+        A type of lobster dish.
+    norwegian_blue : str
+        This is an ex-parrot.
 
     """
     )
@@ -370,6 +435,29 @@ def test_returns_unnamed_typed():
         returns="Amazingly qux.",
     )
     def foo() -> int:
+        return 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    int
+        Amazingly qux.
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
+
+
+def test_returns_unnamed_typed_annotated():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+    )
+    def foo() -> Annotated[int, "Amazingly qux."]:
         return 42
 
     expected = cleandoc(
@@ -716,7 +804,7 @@ def test_method():
     validate(foo.m)
 
 
-def test_parameter_defaults_untyped():
+def test_parameters_defaults_untyped():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with parameters and default values.",
@@ -756,7 +844,7 @@ def test_parameter_defaults_untyped():
     validate(foo, allow={"PR02"})
 
 
-def test_parameter_defaults_typed():
+def test_parameters_defaults_typed():
     # noinspection PyUnusedLocal
     @doc(
         summary="A function with parameters and default values.",
