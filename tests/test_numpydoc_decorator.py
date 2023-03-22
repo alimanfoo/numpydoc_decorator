@@ -414,6 +414,24 @@ def test_parameters_all_annotated():
     validate(foo)
 
 
+def test_returns_none():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+    )
+    def foo() -> None:
+        pass
+
+    expected = cleandoc(
+        """
+    A function.
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo, allow={"RT03"})
+
+
 def test_returns_unnamed():
     # noinspection PyUnusedLocal
     @doc(
@@ -462,6 +480,28 @@ def test_returns_unnamed_typed():
     validate(foo)
 
 
+def test_returns_unnamed_typed_auto():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+    )
+    def foo() -> int:
+        return 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    int
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo, allow={"RT03"})
+
+
 def test_returns_unnamed_typed_annotated():
     # noinspection PyUnusedLocal
     @doc(
@@ -478,6 +518,54 @@ def test_returns_unnamed_typed_annotated():
     -------
     int
         Amazingly qux.
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
+
+
+def test_returns_unnamed_multi_typed():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+    )
+    def foo() -> Tuple[int, str]:
+        return 42, "foo"
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    int
+    str
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo, allow=["RT03"])
+
+
+def test_returns_unnamed_multi_typed_annotated():
+    # noinspection PyUnusedLocal
+    @doc(
+        summary="A function.",
+    )
+    def foo() -> Tuple[Annotated[int, "The answer."], Annotated[str, "The question."]]:
+        return 42, "foo"
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    int
+        The answer.
+    str
+        The question.
     """
     )
     actual = getdoc(foo)
@@ -575,6 +663,34 @@ def test_returns_named_multi_typed():
         ),
     )
     def foo() -> Tuple[str, int]:
+        return "hello", 42
+
+    expected = cleandoc(
+        """
+    A function.
+
+    Returns
+    -------
+    spam : str
+        You'll love it.
+    eggs : int
+        Good with spam.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
+
+
+def test_returns_named_multi_typed_annotated():
+    @doc(
+        summary="A function.",
+        returns=("spam", "eggs"),
+    )
+    def foo() -> (
+        Tuple[Annotated[str, "You'll love it."], Annotated[int, "Good with spam."]]
+    ):
         return "hello", 42
 
     expected = cleandoc(
