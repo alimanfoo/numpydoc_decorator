@@ -351,6 +351,10 @@ def test_parameters_typed():
     compare(actual, expected)
     validate(foo)
 
+    # check annotated types are stripped
+    compare(foo.__annotations__["norwegian_blue"], str)
+    compare(foo.__annotations__["lumberjack_song"], Optional[int])
+
 
 def test_parameters_all_annotated():
     # Support use of Annotated to keep type information and
@@ -412,6 +416,22 @@ def test_parameters_all_annotated():
     actual = getdoc(foo)
     compare(actual, expected)
     validate(foo)
+
+    # check annotated types are stripped
+    expected_annotations = {
+        "bar": int,
+        "baz": str,
+        "qux": Sequence,
+        "spam": Union[list, str],
+        "eggs": Dict[str, Sequence],
+        "bacon": Literal["xxx", "yyy", "zzz"],
+        "sausage": List[int],
+        "lobster": Tuple[float, ...],
+        "thermidor": Sequence[str],
+        "norwegian_blue": str,
+        "lumberjack_song": Optional[int],
+    }
+    compare(foo.__annotations__, expected_annotations)
 
 
 def test_returns_none():
@@ -524,6 +544,10 @@ def test_returns_unnamed_typed_annotated():
     compare(actual, expected)
     validate(foo)
 
+    # check that annotated types have been stripped
+    expected_annotations = {"return": int}
+    compare(foo.__annotations__, expected_annotations)
+
 
 def test_returns_unnamed_multi_typed():
     # noinspection PyUnusedLocal
@@ -571,6 +595,10 @@ def test_returns_unnamed_multi_typed_annotated():
     actual = getdoc(foo)
     compare(actual, expected)
     validate(foo)
+
+    # check type annotations are stripped
+    expected_annotations = {"return": Tuple[int, str]}
+    compare(foo.__annotations__, expected_annotations)
 
 
 def test_returns_named():
@@ -709,6 +737,10 @@ def test_returns_named_multi_typed_annotated():
     actual = getdoc(foo)
     compare(actual, expected)
     validate(foo)
+
+    # check type annotations are stripped
+    expected_annotations = {"return": Tuple[str, int]}
+    compare(foo.__annotations__, expected_annotations)
 
 
 def test_returns_named_multi_typed_ellipsis():
