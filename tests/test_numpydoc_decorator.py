@@ -296,7 +296,7 @@ def test_parameters_typed():
             sausage="Good with bacon.",
             lobster="Good with sausage.",
             thermidor="A type of lobster dish.",
-            # norwegian_blue not needed, will be picked up from Annotated type
+            # other parameters not needed, will be picked up from Annotated type
         ),
     )
     def foo(
@@ -310,6 +310,9 @@ def test_parameters_typed():
         lobster: Tuple[float, ...],
         thermidor: Sequence[str],
         norwegian_blue: Annotated[str, "This is an ex-parrot."],
+        lumberjack_song: Optional[
+            Annotated[int, "I sleep all night and I work all day."]
+        ],
     ):
         pass
 
@@ -339,6 +342,8 @@ def test_parameters_typed():
         A type of lobster dish.
     norwegian_blue : str
         This is an ex-parrot.
+    lumberjack_song : int or None
+        I sleep all night and I work all day.
 
     """
     )
@@ -367,6 +372,9 @@ def test_parameters_all_annotated():
         lobster: Annotated[Tuple[float, ...], "Good with sausage."],
         thermidor: Annotated[Sequence[str], "A type of lobster dish."],
         norwegian_blue: Annotated[str, "This is an ex-parrot."],
+        lumberjack_song: Optional[
+            Annotated[int, "I sleep all night and I work all day."]
+        ],
     ):
         pass
 
@@ -396,6 +404,8 @@ def test_parameters_all_annotated():
         A type of lobster dish.
     norwegian_blue : str
         This is an ex-parrot.
+    lumberjack_song : int or None
+        I sleep all night and I work all day.
 
     """
     )

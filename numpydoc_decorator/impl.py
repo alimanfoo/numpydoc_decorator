@@ -369,6 +369,18 @@ def format_references(references: Mapping[str, str]):
     return docstring
 
 
+def unpack_optional(t):
+    """Unpack an Optional type."""
+    t_orig = typing_get_origin(t)
+    t_args = typing_get_args(t)
+    if t_orig == Optional:
+        return t_args[0]
+    if t_orig == Union and len(t_args) == 2 and t_args[1] == NoneType:
+        # compatibility for PY37
+        return t_args[0]
+    return t
+
+
 def doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
@@ -459,10 +471,12 @@ def doc(
 
         # accommodate use of Annotated types for parameters documentation
         for param_name, param in sig.parameters.items():
-            t = param.annotation
-            if typing_get_origin(t) == Annotated:
+            t = unpack_optional(param.annotation)
+            t_orig = typing_get_origin(t)
+            t_args = typing_get_args(t)
+            if t_orig == Annotated:
                 # assume first annotation provides documentation
-                x = typing_get_args(t)[1]
+                x = t_args[1]
                 if isinstance(x, str):
                     parameters.setdefault(param_name, x)
 
