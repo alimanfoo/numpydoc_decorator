@@ -8,6 +8,7 @@ from typing import Tuple, Union
 from typing_extensions import Annotated, Literal
 from typing_extensions import get_args as typing_get_args
 from typing_extensions import get_origin as typing_get_origin
+from typing_extensions import get_type_hints
 
 try:
     from types import NoneType
@@ -439,6 +440,7 @@ def doc(
     notes: Optional[str] = None,
     references: Optional[Mapping[str, str]] = None,
     examples: Optional[str] = None,
+    include_extras: bool = False,
 ) -> Callable[[Callable], Callable]:
     """Provide documentation for a function or method, to be formatted as a
     numpy-style docstring (numpydoc).
@@ -480,6 +482,9 @@ def doc(
         References cited in the Notes section may be listed here.
     examples : str, optional
         An optional section for examples, using the doctest format.
+    include_extras : bool, optional
+        If True, preserve any Annotated types in the annotations on the
+        decorated function.
 
     Returns
     -------
@@ -638,7 +643,12 @@ def doc(
         # final cleanup
         docstring = newline + cleandoc(docstring) + newline
 
+        # attach the docstring
         f.__doc__ = docstring
+
+        # strip Annotated types, these are unreadable in built-in help() function
+        f.__annotations__ = get_type_hints(f, include_extras=include_extras)
+
         return f
 
     return decorator
