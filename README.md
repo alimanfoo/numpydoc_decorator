@@ -5,20 +5,20 @@ docstrings](https://numpydoc.readthedocs.io/en/latest/format.html#sections)
 programmatically and apply them using a decorator. This can be useful
 because:
 
-* Parts of your documentation, such as parameter descriptions, can be
-  shared between functions, avoiding the need to repeat yourself.
+-   Parts of your documentation, such as parameter descriptions, can be
+    shared between functions, avoiding the need to repeat yourself.
 
-* Type information for parameters and return values is automatically
-  picked up from type annotations and added to the docstring, avoiding
-  the need to maintain type information in two places.
-
+-   Type information for parameters and return values is automatically
+    picked up from type annotations and added to the docstring, avoiding
+    the need to maintain type information in two places.
 
 ## Installation
 
 `pip install numpydoc_decorator`
 
-
 ## Usage
+
+### Documentation a function
 
 Here is an example of documenting a function:
 
@@ -154,6 +154,80 @@ Salut Tricia MacMillan!
 
 ```
 
+### Shared parameters
+
+If you have parameters which are common to multiple functions, here
+is an approach you can take:
+
+```python
+from numpydoc_decorator import doc
+from typing_extensions import Annotated
+
+
+class params:
+    name = Annotated[str, "The name of a person."]
+    language = Annotated[str, "An ISO 639-1 language code."]
+
+
+@doc(
+    summary="Say hello to someone you know.",
+    returns="A personal greeting.",
+)
+def say_hello(
+    name: params.name,
+    language: params.language,
+) -> str:
+    pass
+
+
+@doc(
+    summary="Say goodbye to someone you know.",
+    returns="A personal parting.",
+)
+def say_goodbye(
+    name: params.name,
+    language: params.language,
+) -> str:
+    pass
+```
+
+Here are the generated docstrings:
+
+```
+>>> print(say_hello.__doc__)
+
+Say hello to someone you know.
+
+Parameters
+----------
+name : str
+    The name of a person.
+language : str
+    An ISO 639-1 language code.
+
+Returns
+-------
+str
+    A personal greeting.
+```
+
+```
+>>> print(say_goodbye.__doc__)
+
+Say goodbye to someone you know.
+
+Parameters
+----------
+name : str
+    The name of a person.
+language : str
+    An ISO 639-1 language code.
+
+Returns
+-------
+str
+    A personal parting.
+```
 
 ## Notes
 

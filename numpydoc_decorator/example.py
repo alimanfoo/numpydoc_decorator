@@ -62,3 +62,33 @@ def greet(
         return f"Salut {name}!"
     else:
         raise NotImplementedError(f"language {language} not implemented")
+
+
+from typing_extensions import Annotated
+
+
+class params:
+    name = Annotated[str, "The name of a person."]
+    language = Annotated[str, "An ISO 639-1 language code."]
+
+
+@doc(
+    summary="Say hello to someone you know.",
+    returns="A personal greeting.",
+)
+def say_hello(
+    name: params.name,
+    language: params.language,
+) -> str:
+    pass
+
+
+@doc(
+    summary="Say goodbye to someone you know.",
+    returns="A personal parting.",
+)
+def say_goodbye(
+    name: params.name,
+    language: params.language,
+) -> str:
+    pass
