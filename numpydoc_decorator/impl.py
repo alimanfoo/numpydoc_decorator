@@ -114,10 +114,6 @@ def format_parameters(parameters: Mapping[str, str], sig: Signature):
         # add parameter description
         docstring += newline
         param_doc = parameters[param_name]
-        # accommodate use of Annotated types here
-        if typing_get_origin(param_doc) == Annotated:
-            # assume first annotation provides documentation
-            param_doc = typing_get_args(param_doc)[1]
         docstring += format_indented_paragraphs(param_doc).strip(newline)
         docstring += newline
 
@@ -180,13 +176,21 @@ def format_type(t):
         return s
 
 
-def format_returns(returns: Union[str, Mapping[str, str]], sig: Signature):
+def format_returns(returns: Union[str, bool, Mapping[str, str]], sig: Signature):
+    if returns is True:
+        return format_returns_auto(sig.return_annotation)
     if isinstance(returns, str):
         return format_returns_unnamed(returns, sig.return_annotation)
     elif isinstance(returns, Mapping):
         return format_returns_named(returns, sig.return_annotation)
     else:
         raise TypeError("returns must be str or Mapping")
+
+
+def format_returns_auto(return_annotation):
+    assert return_annotation is not Parameter.empty
+    docstring = format_type(return_annotation) + newline
+    return docstring
 
 
 def format_returns_unnamed(returns: str, return_annotation):
@@ -209,7 +213,7 @@ def format_returns_named(returns: Mapping[str, str], return_annotation):
         return_types = [Parameter.empty] * len(returns)
 
     # handle possibility of multiple return values
-    elif typing_get_origin(return_annotation) is tuple:
+    elif typing_get_origin(return_annotation) in [tuple, Tuple]:
         return_type_args = typing_get_args(return_annotation)
         if return_type_args and Ellipsis not in return_type_args:
             # treat as multiple return values
@@ -233,11 +237,15 @@ def format_returns_named(returns: Mapping[str, str], return_annotation):
         )
 
     for (return_name, return_doc), return_type in zip(returns.items(), return_types):
-        docstring += return_name.strip() + " :"
-        if return_type is not Parameter.empty:
-            docstring += f" {format_type(return_type)}"
+        if return_type is Parameter.empty:
+            docstring += return_name.strip() + " :"
+        else:
+            if isinstance(return_name, str):
+                docstring += return_name.strip() + " : "
+            docstring += format_type(return_type)
         docstring += newline
-        docstring += format_indented_paragraph(return_doc)
+        if isinstance(return_doc, str):
+            docstring += format_indented_paragraph(return_doc)
     docstring += newline
 
     return docstring
@@ -250,23 +258,23 @@ def get_yield_annotation(sig: Signature):
         # no return annotation
         return Parameter.empty
 
-    return_type_origin = typing_get_origin(return_annotation)
+    ret_orig = typing_get_origin(return_annotation)
 
     # check return type is compatible with yields
-    if return_type_origin not in [Generator, Iterator, Iterable]:
+    if ret_orig not in [Generator, Iterator, Iterable]:
         raise DocumentationError(
-            f"return type {return_type_origin!r} is not compatible with yields"
+            f"return type {ret_orig!r} is not compatible with yields"
         )
 
     # extract yield annotation if possible
-    return_type_args = typing_get_args(return_annotation)
+    ret_args = typing_get_args(return_annotation)
 
-    if not return_type_args:
+    if not ret_args:
         # no yield annotation
         return Parameter.empty
 
     else:
-        yield_annotation = return_type_args[0]
+        yield_annotation = ret_args[0]
         return yield_annotation
 
 
@@ -381,6 +389,40 @@ def unpack_optional(t):
     return t
 
 
+def get_annotated_doc(t, default=None):
+    t_orig = typing_get_origin(t)
+    t_args = typing_get_args(t)
+    if t_orig == Annotated:
+        # assume first annotation provides documentation
+        x = t_args[1]
+        if isinstance(x, str):
+            return x
+    return default
+
+
+def auto_returns(returns_doc, return_annotation):
+    ret_orig = typing_get_origin(return_annotation)
+    ret_args = typing_get_args(return_annotation)
+    ret_multi = ret_orig in (Tuple, tuple) and Ellipsis not in ret_args
+
+    if ret_multi:
+        if returns_doc is None:
+            # use integers as names for anonymous return values
+            returns_doc = tuple(range(len(ret_args)))
+
+        if isinstance(returns_doc, tuple):
+            # assume returns_doc provides names for return values
+            ret_names = tuple(returns_doc)
+            returns_doc = dict()
+            for n, t in zip(ret_names, ret_args):
+                returns_doc[n] = get_annotated_doc(t, True)
+
+    if returns_doc is None:
+        returns_doc = get_annotated_doc(return_annotation, True)
+
+    return returns_doc
+
+
 def doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
@@ -472,23 +514,20 @@ def doc(
         # accommodate use of Annotated types for parameters documentation
         for param_name, param in sig.parameters.items():
             t = unpack_optional(param.annotation)
-            t_orig = typing_get_origin(t)
-            t_args = typing_get_args(t)
-            if t_orig == Annotated:
-                # assume first annotation provides documentation
-                x = t_args[1]
-                if isinstance(x, str):
-                    parameters.setdefault(param_name, x)
+            param_doc = get_annotated_doc(t)
+            if param_doc:
+                parameters.setdefault(param_name, param_doc)
 
         # accommodate use of Annotated types for returns documentation
         return_annotation = sig.return_annotation
         returns_doc = returns
-        if returns_doc is None:
-            if typing_get_origin(return_annotation) == Annotated:
-                # assume first annotation provides documentation
-                x = typing_get_args(return_annotation)[1]
-                if isinstance(x, str):
-                    returns_doc = x
+        if (
+            return_annotation is not Parameter.empty
+            and return_annotation is not None
+            and return_annotation != NoneType
+            and yields is None
+        ):
+            returns_doc = auto_returns(returns_doc, return_annotation)
 
         # check for missing parameters
         all_parameters = dict()
