@@ -80,7 +80,14 @@ def say_hello(
     name: params.name,
     language: params.language,
 ) -> str:
-    pass
+    if len(language) != 2:
+        raise ValueError("language must be an ISO 639-1 code")
+    if language == "en":
+        return f"Hello {name}!"
+    elif language == "fr":
+        return f"Salut {name}!"
+    else:
+        raise NotImplementedError(f"language {language} not implemented")
 
 
 @doc(
@@ -91,4 +98,11 @@ def say_goodbye(
     name: params.name,
     language: params.language,
 ) -> str:
-    pass
+    if len(language) != 2:
+        raise ValueError("language must be an ISO 639-1 code")
+    if language == "en":
+        return f"Goodbye {name}!"
+    elif language == "fr":
+        return f"Au revoir {name}!"
+    else:
+        raise NotImplementedError(f"language {language} not implemented")
