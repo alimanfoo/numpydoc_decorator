@@ -8,6 +8,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Union,
 )
@@ -23,7 +24,7 @@ from typing_extensions import Annotated, Literal
 from numpydoc_decorator import DocumentationError, doc
 
 
-def validate(f, allow=None):
+def validate(f, allow: Optional[Set[str]] = None) -> None:
     # noinspection PyTypeChecker
     report: Mapping = numpydoc_validate(FunctionDoc(f))
     errors = report["errors"]
@@ -1472,7 +1473,9 @@ def test_returns_yields():
             ),
         )
         def foo() -> Iterable[str]:
-            yield "spam", "eggs", "toast"
+            yield "spam"
+            yield "eggs"
+            yield "toast"
 
 
 def test_receives_unnamed():
@@ -1785,7 +1788,8 @@ def test_receives_extra_names():
             ),
         )
         def foo() -> Generator[int, Tuple[str, str], None]:
-            yield "spam", "eggs"
+            foo, bar = yield 42
+            spam, eggs = yield 84
 
 
 def test_receives_extra_type():
@@ -1898,7 +1902,7 @@ def test_other_parameters_typed():
         ),
     )
     def foo(bar: int, baz: str, spam: float, eggs: Tuple[int]) -> bool:
-        pass
+        return True
 
     expected = cleandoc(
         """
@@ -2553,7 +2557,7 @@ def numpy_mean(
     *,
     where: Optional[ArrayLike] = None,
 ) -> numpy.ndarray:
-    pass
+    return numpy.zeros(42)
 
 
 def test_numpy_mean():

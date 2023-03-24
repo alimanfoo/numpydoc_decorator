@@ -1,7 +1,7 @@
 from collections.abc import Generator, Iterable, Iterator, Sequence
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Callable, List, Mapping, Optional
+from typing import Callable, Dict, List, Mapping, Optional
 from typing import Sequence as SequenceType
 from typing import Tuple, Union
 
@@ -10,19 +10,17 @@ from typing_extensions import get_args as typing_get_args
 from typing_extensions import get_origin as typing_get_origin
 from typing_extensions import get_type_hints
 
-try:
-    from types import NoneType
-except ImportError:
-    NoneType = type(None)
+NoneType = type(None)
 
 try:
     # check whether numpy is installed
     import numpy
     from numpy.typing import ArrayLike, DTypeLike
 except ImportError:
-    numpy = None
-    ArrayLike = None
-    DTypeLike = None
+    # numpy is optional, this package should still work if not installed
+    numpy = None  # type: ignore
+    ArrayLike = None  # type: ignore
+    DTypeLike = None  # type: ignore
 
 
 newline = "\n"
@@ -211,7 +209,7 @@ def format_returns_named(returns: Mapping[str, str], return_annotation):
 
     if return_annotation is Parameter.empty:
         # trust the documentation regarding number of return values
-        return_types = [Parameter.empty] * len(returns)
+        return_types = (Parameter.empty,) * len(returns)
 
     # handle possibility of multiple return values
     elif typing_get_origin(return_annotation) in [tuple, Tuple]:
@@ -221,11 +219,11 @@ def format_returns_named(returns: Mapping[str, str], return_annotation):
             return_types = return_type_args
         else:
             # treat as a single return value
-            return_types = [return_annotation]
+            return_types = (return_annotation,)
 
     else:
         # assume a single return value
-        return_types = [return_annotation]
+        return_types = (return_annotation,)
 
     if len(returns) > len(return_types):
         raise DocumentationError(
@@ -401,119 +399,77 @@ def get_annotated_doc(t, default=None):
     return default
 
 
-def auto_returns(returns_doc, return_annotation):
+def auto_returns(returns, return_annotation):
     ret_orig = typing_get_origin(return_annotation)
     ret_args = typing_get_args(return_annotation)
     ret_multi = ret_orig in (Tuple, tuple) and Ellipsis not in ret_args
-
     if ret_multi:
-        if returns_doc is None:
-            # use integers as names for anonymous return values
-            returns_doc = tuple(range(len(ret_args)))
+        return auto_returns_multi(returns, ret_args)
+    else:
+        return auto_returns_single(returns, return_annotation)
 
-        if isinstance(returns_doc, tuple):
-            # assume returns_doc provides names for return values
-            ret_names = tuple(returns_doc)
-            returns_doc = dict()
-            for n, t in zip(ret_names, ret_args):
-                returns_doc[n] = get_annotated_doc(t, True)
 
-    if returns_doc is None:
+def auto_returns_single(returns, return_annotation):
+    if returns is None:
         returns_doc = get_annotated_doc(return_annotation, True)
+    else:
+        returns_doc = returns
+    return returns_doc
+
+
+def auto_returns_multi(returns, ret_args):
+    if returns is None:
+        # use integers as names for anonymous return values
+        returns = tuple(range(len(ret_args)))
+
+    if isinstance(returns, tuple):
+        # assume returns_doc provides names for return values
+        ret_names = tuple(returns)
+        returns_doc = dict()
+        for n, t in zip(ret_names, ret_args):
+            returns_doc[n] = get_annotated_doc(t, True)
+
+    else:
+        returns_doc = returns
 
     return returns_doc
 
 
-def doc(
+def _doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
     extended_summary: Optional[str] = None,
     parameters: Optional[Mapping[str, str]] = None,
-    returns: Optional[Union[str, Mapping[str, str]]] = None,
+    returns: Optional[Union[str, Tuple[str, ...], Mapping[str, str]]] = None,
     yields: Optional[Union[str, Mapping[str, str]]] = None,
     receives: Optional[Union[str, Mapping[str, str]]] = None,
     other_parameters: Optional[Mapping[str, str]] = None,
     raises: Optional[Mapping[str, str]] = None,
     warns: Optional[Mapping[str, str]] = None,
     warnings: Optional[str] = None,
-    see_also: Optional[Union[str, SequenceType[str], Mapping[str, str]]] = None,
+    see_also: Optional[
+        Union[str, SequenceType[str], Mapping[str, Optional[str]]]
+    ] = None,
     notes: Optional[str] = None,
     references: Optional[Mapping[str, str]] = None,
     examples: Optional[str] = None,
     include_extras: bool = False,
 ) -> Callable[[Callable], Callable]:
-    """Provide documentation for a function or method, to be formatted as a
-    numpy-style docstring (numpydoc).
-
-    Parameters
-    ----------
-    summary : str
-        A one-line summary that does not use variable names or the function name.
-    deprecation : Mapping[str, str], optional
-        Warn users that the object is deprecated. Should include `version` and
-        `reason` keys.
-    extended_summary : str, optional
-        A few sentences giving an extended description.
-    parameters : Mapping[str, str], optional
-        Description of the function arguments and keywords.
-    returns : str or Mapping[str, str], optional
-        Explanation of the returned values.
-    yields : str or Mapping[str, str], optional
-        Explanation of the yielded values.
-        This is relevant to generators only.
-    receives : str or Mapping[str, str], optional
-        Explanation of parameters passed to a generator’s `.send()` method.
-    other_parameters : Mapping[str, str], optional
-        An optional section used to describe infrequently used parameters.
-    raises : Mapping[str, str], optional
-        An optional section detailing which errors get raised and under what
-        conditions.
-    warns : Mapping[str, str], optional
-        An optional section detailing which warnings get raised and under what
-        conditions.
-    warnings : str, optional
-        An optional section with cautions to the user in free text/reST.
-    see_also : str or sequence of str or Mapping[str, str], optional
-        An optional section used to refer to related code.
-    notes : str, optional
-        An optional section that provides additional information about the code,
-        possibly including a discussion of the algorithm.
-    references : Mapping[str, str], optional
-        References cited in the Notes section may be listed here.
-    examples : str, optional
-        An optional section for examples, using the doctest format.
-    include_extras : bool, optional
-        If True, preserve any Annotated types in the annotations on the
-        decorated function.
-
-    Returns
-    -------
-    decorator
-        A decorator function which can be applied to a function that you want
-        to document.
-
-    Raises
-    ------
-    DocumentationError
-        An error is raised if there are any problems with the provided documentation,
-        such as missing parameters or parameters not consistent with the
-        function's type annotations.
-
-    """
-    if parameters is None:
-        parameters = dict()
-    if other_parameters is None:
-        other_parameters = dict()
-
+    # sanity checks
     if returns and yields:
         raise DocumentationError("cannot have both returns and yields")
-
     if receives and not yields:
         raise DocumentationError("if receives, must also have yields")
 
     def decorator(f: Callable) -> Callable:
+        # set up utility variables
+        param_docs: Dict[str, str] = dict()
+        if parameters:
+            param_docs.update(parameters)
+        other_param_docs: Dict[str, str] = dict()
+        if other_parameters:
+            other_param_docs.update(other_parameters)
         docstring = ""
-
         sig = signature(f)
 
         # accommodate use of Annotated types for parameters documentation
@@ -521,25 +477,26 @@ def doc(
             t = unpack_optional(param.annotation)
             param_doc = get_annotated_doc(t)
             if param_doc:
-                parameters.setdefault(param_name, param_doc)
+                param_docs.setdefault(param_name, param_doc)
 
         # accommodate use of Annotated types for returns documentation
         return_annotation = sig.return_annotation
-        returns_doc = returns
         if (
             return_annotation is not Parameter.empty
             and return_annotation is not None
             and return_annotation != NoneType
             and yields is None
         ):
-            returns_doc = auto_returns(returns_doc, return_annotation)
+            returns_doc = auto_returns(returns, return_annotation)
+        else:
+            returns_doc = returns
 
         # check for missing parameters
-        all_parameters = dict()
-        all_parameters.update(parameters)
-        all_parameters.update(other_parameters)
+        all_param_docs: Dict[str, str] = dict()
+        all_param_docs.update(param_docs)
+        all_param_docs.update(other_param_docs)
         for e in sig.parameters:
-            if e != "self" and e not in all_parameters:
+            if e != "self" and e not in all_param_docs:
                 raise DocumentationError(f"Parameter {e} not documented.")
 
         # N.B., intentionally allow extra parameters which are not in the
@@ -562,10 +519,10 @@ def doc(
             docstring += newline
 
         # add parameters section
-        if parameters:
+        if param_docs:
             docstring += "Parameters" + newline
             docstring += "----------" + newline
-            docstring += format_parameters(parameters, sig)
+            docstring += format_parameters(param_docs, sig)
             docstring += newline
 
         # add returns section
@@ -587,10 +544,10 @@ def doc(
             docstring += format_receives(receives, sig)
 
         # add other parameters section
-        if other_parameters:
+        if other_param_docs:
             docstring += "Other Parameters" + newline
             docstring += "----------------" + newline
-            docstring += format_parameters(other_parameters, sig)
+            docstring += format_parameters(other_param_docs, sig)
             docstring += newline
 
         # add raises section
@@ -652,3 +609,79 @@ def doc(
         return f
 
     return decorator
+
+
+# eat our own dogfood
+_docstring = _doc(
+    summary="""
+        Provide documentation for a function or method, to be formatted as a
+        numpy-style docstring (numpydoc).
+    """,
+    parameters=dict(
+        summary="""
+            A one-line summary that does not use variable names or the function name.
+        """,
+        deprecation="""
+            Warn users that the object is deprecated. Should include `version` and
+            `reason` keys.
+        """,
+        extended_summary="""
+            A few sentences giving an extended description.
+        """,
+        parameters="""
+            Description of the function arguments and keywords.
+        """,
+        returns="""
+            Explanation of the returned values.
+        """,
+        yields="""
+            Explanation of the yielded values. This is relevant to generators only.
+        """,
+        receives="""
+            Explanation of parameters passed to a generator’s `.send()` method.
+        """,
+        other_parameters="""
+            An optional section used to describe infrequently used parameters.
+        """,
+        raises="""
+            An optional section detailing which errors get raised and under what
+            conditions.
+        """,
+        warns="""
+            An optional section detailing which warnings get raised and under what
+            conditions.
+        """,
+        warnings="""
+            An optional section with cautions to the user in free text/reST.
+        """,
+        see_also="""
+            An optional section used to refer to related code.
+        """,
+        notes="""
+            An optional section that provides additional information about the code,
+            possibly including a discussion of the algorithm.
+        """,
+        references="""
+            References cited in the Notes section may be listed here.
+        """,
+        examples="""
+            An optional section for examples, using the doctest format.
+        """,
+        include_extras="""
+            If True, preserve any Annotated types in the annotations on the
+            decorated function.
+        """,
+    ),
+    returns="""
+        A decorator function which can be applied to a function that you want
+        to document.
+    """,
+    raises=dict(
+        DocumentationError="""
+            An error is raised if there are any problems with the provided documentation,
+            such as missing parameters or parameters not consistent with the
+            function's type annotations.
+        """
+    ),
+)
+doc = _docstring(_doc)
