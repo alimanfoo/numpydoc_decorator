@@ -42,12 +42,18 @@ def punctuate(s: str):
     return s
 
 
-def format_paragraph(s: str):
-    return fill(punctuate(dedent(s.strip(newline)))) + newline
+# N.B., width of 72 is recommended in PEP8. It's also the default width
+# of the help tab in colab, so keeping under 72 ensures lines don't get
+# broken visually there, which can be confusing.
+
+
+def format_paragraph(s: str, width=72):
+    return fill(punctuate(dedent(s.strip(newline))), width=width) + newline
 
 
 def format_indented_paragraph(s: str):
-    return indent(format_paragraph(s), prefix="    ")
+    # reduce width to account for indent
+    return indent(format_paragraph(s, width=68), prefix="    ")
 
 
 def format_paragraphs(s: str):
