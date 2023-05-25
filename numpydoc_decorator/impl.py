@@ -8,7 +8,6 @@ from typing import Tuple, Union
 from typing_extensions import Annotated, Literal
 from typing_extensions import get_args as typing_get_args
 from typing_extensions import get_origin as typing_get_origin
-from typing_extensions import get_type_hints
 
 NoneType = type(None)
 
@@ -181,13 +180,11 @@ def format_type(t):
     elif t_orig and t_args:
         return f"{format_type(t_orig)}[{', '.join([format_type(t) for t in t_args])}]"
 
+    elif hasattr(t, "__name__"):
+        return t.__name__
+
     else:
-        s = repr(t)
-        # deal with built-in classes like int, etc.
-        if s.startswith("<class"):
-            s = t.__name__
-        s = s.replace("typing.", "")
-        return s
+        return repr(t)
 
 
 def format_returns(returns: Union[str, bool, Mapping[str, str]], sig: Signature):
@@ -401,6 +398,24 @@ def unpack_optional(t):
         # compatibility for PY37
         return t_args[0]
     return t
+
+
+def bypass_annotated(t):
+    """Strip Annotated types."""
+    t_orig = typing_get_origin(t)
+    t_args = typing_get_args(t)
+    if t_orig == Annotated:
+        a = t_args[0]
+        # check for a forward reference here, if so revert to string
+        if isinstance(a, ForwardRef):
+            return a.__forward_arg__
+        else:
+            return a
+    elif t_orig and t_args:
+        t_args = tuple(bypass_annotated(a) for a in t_args)
+        return t_orig[t_args]
+    else:
+        return t
 
 
 def get_annotated_doc(t, default=None):
@@ -619,7 +634,10 @@ def _doc(
         f.__doc__ = docstring
 
         # strip Annotated types, these are unreadable in built-in help() function
-        # f.__annotations__ = get_type_hints(f, include_extras=include_extras)
+        if not include_extras:
+            f.__annotations__ = {
+                k: bypass_annotated(v) for k, v in f.__annotations__.items()
+            }
 
         return f
 

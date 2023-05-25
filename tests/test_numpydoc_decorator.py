@@ -331,7 +331,7 @@ def test_parameters_typed():
         Many values.
     spam : list or str
         You'll love it.
-    eggs : Dict[str, Sequence]
+    eggs : dict[str, Sequence]
         Good with spam.
     bacon : {'xxx', 'yyy', 'zzz'}
         Good with eggs.
@@ -397,7 +397,7 @@ def test_parameters_all_annotated():
         Many values.
     spam : list or str
         You'll love it.
-    eggs : Dict[str, Sequence]
+    eggs : dict[str, Sequence]
         Good with spam.
     bacon : {'xxx', 'yyy', 'zzz'}
         Good with eggs.
@@ -598,7 +598,7 @@ def test_returns_unnamed_multi_typed_annotated():
     validate(foo)
 
     # check type annotations are stripped
-    expected_annotations = {"return": Tuple[int, str]}
+    expected_annotations = {"return": tuple[int, str]}
     compare(foo.__annotations__, expected_annotations)
 
 
@@ -740,7 +740,7 @@ def test_returns_named_multi_typed_annotated():
     validate(foo)
 
     # check type annotations are stripped
-    expected_annotations = {"return": Tuple[str, int]}
+    expected_annotations = {"return": tuple[str, int]}
     compare(foo.__annotations__, expected_annotations)
 
 
@@ -1924,7 +1924,7 @@ def test_other_parameters_typed():
     ----------------
     spam : float
         You'll love it.
-    eggs : Tuple[int]
+    eggs : tuple[int]
         Good with spam.
 
     """
@@ -2748,20 +2748,34 @@ def test_example():
 
 def test_forward_refs():
     @doc(
-        summary="A function with typed parameters and forward refs.",
+        summary="A function with typed parameters and forward references.",
         parameters=dict(
             bar="This is very bar.",
             baz="This is totally baz.",
+            qux="Many values.",
             spam="You'll love it.",
             eggs="Good with spam.",
+            bacon="Good with eggs.",
+            sausage="Good with bacon.",
+            lobster="Good with sausage.",
+            thermidor="A type of lobster dish.",
+            # other parameters not needed, will be picked up from Annotated type
         ),
     )
     def foo(
         bar: int,
-        baz: "Thing",
-        qux: Annotated["Thing", "Extremely qux."],
-        spam: List["Thing"],
+        baz: str,
+        qux: "Thing",
+        spam: Union[str, "Thing"],
         eggs: Dict[str, "Thing"],
+        bacon: Literal["xxx", "yyy", "zzz"],
+        sausage: List["Thing"],
+        lobster: Tuple["Thing", ...],
+        thermidor: Sequence["Thing"],
+        norwegian_blue: Annotated["Thing", "This is an ex-parrot."],
+        lumberjack_song: Optional[
+            Annotated["Thing", "I sleep all night and I work all day."]
+        ],
     ):
         pass
 
@@ -2770,23 +2784,39 @@ def test_forward_refs():
 
     expected = cleandoc(
         """
-    A function with typed parameters and forward refs.
+    A function with typed parameters and forward references.
 
     Parameters
     ----------
     bar : int
         This is very bar.
-    baz : Thing
+    baz : str
         This is totally baz.
     qux : Thing
-        Extremely qux.
-    spam : list of Thing
+        Many values.
+    spam : str or Thing
         You'll love it.
     eggs : dict[str, Thing]
         Good with spam.
+    bacon : {'xxx', 'yyy', 'zzz'}
+        Good with eggs.
+    sausage : list of Thing
+        Good with bacon.
+    lobster : tuple of Thing
+        Good with sausage.
+    thermidor : sequence of Thing
+        A type of lobster dish.
+    norwegian_blue : Thing
+        This is an ex-parrot.
+    lumberjack_song : Thing or None
+        I sleep all night and I work all day.
 
     """
     )
     actual = getdoc(foo)
     compare(actual, expected)
     validate(foo)
+
+    # check annotated types are bypassed
+    compare(foo.__annotations__["norwegian_blue"], "Thing")
+    compare(foo.__annotations__["lumberjack_song"], Optional["Thing"])
