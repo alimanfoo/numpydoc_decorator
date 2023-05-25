@@ -1,3 +1,7 @@
+import functools
+import operator
+import types as _types
+import typing
 from collections.abc import Generator, Iterable, Iterator, Sequence
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
@@ -5,7 +9,7 @@ from typing import Callable, Dict, ForwardRef, List, Mapping, Optional
 from typing import Sequence as SequenceType
 from typing import Tuple, Union
 
-from typing_extensions import Annotated, Literal
+from typing_extensions import Annotated, Literal, _AnnotatedAlias
 from typing_extensions import get_args as typing_get_args
 from typing_extensions import get_origin as typing_get_origin
 
@@ -104,7 +108,7 @@ def format_parameters(parameters: Mapping[str, str], sig: Signature):
 
             # handle type annotation
             if param.annotation is not Parameter.empty:
-                docstring += " " + format_type(param.annotation)
+                docstring += " " + humanize_type(param.annotation)
 
             # handle default value
             if param.default is not Parameter.empty:
@@ -123,7 +127,7 @@ def format_parameters(parameters: Mapping[str, str], sig: Signature):
     return docstring
 
 
-def format_type(t):
+def humanize_type(t):
     # Here we attempt to provide some kind of human-readable representation
     # of types used in type hints.
 
@@ -154,15 +158,15 @@ def format_type(t):
     elif t_orig == Annotated:
         # special handling for annotated types
         x = t_args[0]
-        return format_type(x)
+        return humanize_type(x)
 
     elif t_orig == Union and t_args:
         # special handling for union types
-        return " or ".join([format_type(x) for x in t_args])
+        return " or ".join([humanize_type(x) for x in t_args])
 
     elif t_orig == Optional and t_args:
         x = t_args[0]
-        return format_type(x) + " or None"
+        return humanize_type(x) + " or None"
 
     elif t_orig == Literal and t_args:
         # humanize Literal types
@@ -171,24 +175,29 @@ def format_type(t):
     elif t_orig in [list, List, Sequence, SequenceType] and t_args:
         # humanize sequence types
         x = t_args[0]
-        return format_type(t_orig).lower() + " of " + format_type(x)
+        return humanize_type(t_orig).lower() + " of " + humanize_type(x)
 
     elif t_orig in [tuple, Tuple] and t_args and Ellipsis in t_args:
         # humanize variable length tuples
         x = t_args[0]
-        return "tuple of " + format_type(x)
+        return "tuple of " + humanize_type(x)
 
     elif t_orig and t_args:
         # deal with any other generic types
-        return f"{format_type(t_orig)}[{', '.join([format_type(t) for t in t_args])}]"
+        return (
+            f"{humanize_type(t_orig)}[{', '.join([humanize_type(t) for t in t_args])}]"
+        )
 
     elif hasattr(t, "__name__"):
         # assume some other kind of class
         return t.__name__
 
     else:
-        # fallback, hopefully should never reach here
-        return repr(t)
+        # fallback
+        s = repr(t)
+        if s.startswith("typing."):
+            s = s[7:]
+        return s
 
 
 def format_returns(returns: Union[str, bool, Mapping[str, str]], sig: Signature):
@@ -204,7 +213,7 @@ def format_returns(returns: Union[str, bool, Mapping[str, str]], sig: Signature)
 
 def format_returns_auto(return_annotation):
     assert return_annotation is not Parameter.empty
-    docstring = format_type(return_annotation) + newline
+    docstring = humanize_type(return_annotation) + newline
     return docstring
 
 
@@ -214,7 +223,7 @@ def format_returns_unnamed(returns: str, return_annotation):
         docstring = format_paragraph(returns)
     else:
         # provide the type
-        docstring = format_type(return_annotation) + newline
+        docstring = humanize_type(return_annotation) + newline
         docstring += format_indented_paragraph(returns)
     docstring += newline
     return docstring
@@ -257,7 +266,7 @@ def format_returns_named(returns: Mapping[str, str], return_annotation):
         else:
             if isinstance(return_name, str):
                 docstring += return_name.strip() + " : "
-            docstring += format_type(return_type)
+            docstring += humanize_type(return_type)
         docstring += newline
         if isinstance(return_doc, str):
             docstring += format_indented_paragraph(return_doc)
@@ -404,22 +413,27 @@ def unpack_optional(t):
     return t
 
 
-def bypass_annotated(t):
-    """Bypass Annotated types."""
-    t_orig = typing_get_origin(t)
-    t_args = typing_get_args(t)
-    if t_orig == Annotated:
-        a = t_args[0]
-        # check for a forward reference here, if so revert to string
-        if isinstance(a, ForwardRef):
-            return a.__forward_arg__
-        else:
-            return a
-    elif t_orig and t_args:
-        t_args = tuple(bypass_annotated(a) for a in t_args)
-        return t_orig[t_args]
-    else:
-        return t
+def strip_extras(t):
+    """Strips Annotated from a given type. Borrowed from typing_extensions."""
+    if isinstance(t, _AnnotatedAlias):
+        return strip_extras(t.__origin__)
+    if isinstance(t, typing._GenericAlias):
+        stripped_args = tuple(strip_extras(a) for a in t.__args__)
+        if stripped_args == t.__args__:
+            return t
+        return t.copy_with(stripped_args)
+    if hasattr(_types, "GenericAlias") and isinstance(t, _types.GenericAlias):
+        stripped_args = tuple(strip_extras(a) for a in t.__args__)
+        if stripped_args == t.__args__:
+            return t
+        return _types.GenericAlias(t.__origin__, stripped_args)
+    if hasattr(_types, "UnionType") and isinstance(t, _types.UnionType):
+        stripped_args = tuple(strip_extras(a) for a in t.__args__)
+        if stripped_args == t.__args__:
+            return t
+        return functools.reduce(operator.or_, stripped_args)
+
+    return t
 
 
 def get_annotated_doc(t, default=None):
@@ -640,7 +654,7 @@ def _doc(
         # strip Annotated types, these are unreadable in built-in help() function
         if not include_extras:
             f.__annotations__ = {
-                k: bypass_annotated(v) for k, v in f.__annotations__.items()
+                k: strip_extras(v) for k, v in f.__annotations__.items()
             }
 
         return f

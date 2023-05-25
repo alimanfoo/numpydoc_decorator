@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from inspect import cleandoc, getdoc
 from typing import (
     Dict,
+    ForwardRef,
     Generator,
     Iterable,
     Iterator,
@@ -598,7 +599,7 @@ def test_returns_unnamed_multi_typed_annotated():
     validate(foo)
 
     # check type annotations are stripped
-    expected_annotations = {"return": tuple[int, str]}
+    expected_annotations = {"return": Tuple[int, str]}
     compare(foo.__annotations__, expected_annotations)
 
 
@@ -740,7 +741,7 @@ def test_returns_named_multi_typed_annotated():
     validate(foo)
 
     # check type annotations are stripped
-    expected_annotations = {"return": tuple[str, int]}
+    expected_annotations = {"return": Tuple[str, int]}
     compare(foo.__annotations__, expected_annotations)
 
 
@@ -2824,5 +2825,5 @@ def test_forward_refs():
     validate(foo)
 
     # check annotated types are bypassed
-    compare(foo.__annotations__["norwegian_blue"], "Thing")
+    compare(foo.__annotations__["norwegian_blue"], ForwardRef("Thing"))
     compare(foo.__annotations__["lumberjack_song"], Optional["Thing"])
