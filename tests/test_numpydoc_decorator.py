@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from inspect import cleandoc, getdoc
 from typing import (
     Dict,
+    ForwardRef,
     Generator,
     Iterable,
     Iterator,
@@ -331,7 +332,7 @@ def test_parameters_typed():
         Many values.
     spam : list or str
         You'll love it.
-    eggs : Dict[str, Sequence]
+    eggs : dict[str, Sequence]
         Good with spam.
     bacon : {'xxx', 'yyy', 'zzz'}
         Good with eggs.
@@ -397,7 +398,7 @@ def test_parameters_all_annotated():
         Many values.
     spam : list or str
         You'll love it.
-    eggs : Dict[str, Sequence]
+    eggs : dict[str, Sequence]
         Good with spam.
     bacon : {'xxx', 'yyy', 'zzz'}
         Good with eggs.
@@ -1924,7 +1925,7 @@ def test_other_parameters_typed():
     ----------------
     spam : float
         You'll love it.
-    eggs : Tuple[int]
+    eggs : tuple[int]
         Good with spam.
 
     """
@@ -2744,3 +2745,85 @@ def test_example():
     actual = getdoc(greet)
     compare(actual, expected)
     validate(greet)
+
+
+def test_forward_refs():
+    # Here we test whether forward references to classes defined after
+    # the decorated function are supported.
+
+    # N.B., some of the forward references cause flake8 to be unhappy,
+    # but don't seem to be a problem. Hence some use of noqa below.
+
+    @doc(
+        summary="A function with typed parameters and forward references.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            qux="Many values.",
+            spam="You'll love it.",
+            eggs="Good with spam.",
+            bacon="Good with eggs.",
+            sausage="Good with bacon.",
+            lobster="Good with sausage.",
+            thermidor="A type of lobster dish.",
+            # other parameters not needed, will be picked up from Annotated type
+        ),
+    )
+    def foo(
+        bar: int,
+        baz: str,
+        qux: "Thing",
+        spam: Union[str, "Thing"],  # noqa
+        eggs: Dict[str, "Thing"],  # noqa
+        bacon: Literal["xxx", "yyy", "zzz"],
+        sausage: List["Thing"],  # noqa
+        lobster: Tuple["Thing", ...],  # noqa
+        thermidor: Sequence["Thing"],  # noqa
+        norwegian_blue: Annotated["Thing", "This is an ex-parrot."],  # noqa
+        lumberjack_song: Optional[
+            Annotated["Thing", "I sleep all night and I work all day."]  # noqa
+        ],
+    ):
+        pass
+
+    class Thing:
+        pass
+
+    expected = cleandoc(
+        """
+    A function with typed parameters and forward references.
+
+    Parameters
+    ----------
+    bar : int
+        This is very bar.
+    baz : str
+        This is totally baz.
+    qux : Thing
+        Many values.
+    spam : str or Thing
+        You'll love it.
+    eggs : dict[str, Thing]
+        Good with spam.
+    bacon : {'xxx', 'yyy', 'zzz'}
+        Good with eggs.
+    sausage : list of Thing
+        Good with bacon.
+    lobster : tuple of Thing
+        Good with sausage.
+    thermidor : sequence of Thing
+        A type of lobster dish.
+    norwegian_blue : Thing
+        This is an ex-parrot.
+    lumberjack_song : Thing or None
+        I sleep all night and I work all day.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
+
+    # check annotated types are bypassed
+    compare(foo.__annotations__["norwegian_blue"], ForwardRef("Thing"))
+    compare(foo.__annotations__["lumberjack_song"], Optional["Thing"])
