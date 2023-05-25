@@ -2747,6 +2747,12 @@ def test_example():
 
 
 def test_forward_refs():
+    # Here we test whether forward references to classes defined after
+    # the decorated function are supported.
+
+    # N.B., some of the forward references cause flake8 to be unhappy,
+    # but don't seem to be a problem. Hence some use of noqa below.
+
     @doc(
         summary="A function with typed parameters and forward references.",
         parameters=dict(
@@ -2766,15 +2772,15 @@ def test_forward_refs():
         bar: int,
         baz: str,
         qux: "Thing",
-        spam: Union[str, "Thing"],
-        eggs: Dict[str, "Thing"],
+        spam: Union[str, "Thing"],  # noqa
+        eggs: Dict[str, "Thing"],  # noqa
         bacon: Literal["xxx", "yyy", "zzz"],
-        sausage: List["Thing"],
-        lobster: Tuple["Thing", ...],
-        thermidor: Sequence["Thing"],
-        norwegian_blue: Annotated["Thing", "This is an ex-parrot."],
+        sausage: List["Thing"],  # noqa
+        lobster: Tuple["Thing", ...],  # noqa
+        thermidor: Sequence["Thing"],  # noqa
+        norwegian_blue: Annotated["Thing", "This is an ex-parrot."],  # noqa
         lumberjack_song: Optional[
-            Annotated["Thing", "I sleep all night and I work all day."]
+            Annotated["Thing", "I sleep all night and I work all day."]  # noqa
         ],
     ):
         pass
