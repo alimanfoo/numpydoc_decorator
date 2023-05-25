@@ -2744,3 +2744,49 @@ def test_example():
     actual = getdoc(greet)
     compare(actual, expected)
     validate(greet)
+
+
+def test_forward_refs():
+    @doc(
+        summary="A function with typed parameters and forward refs.",
+        parameters=dict(
+            bar="This is very bar.",
+            baz="This is totally baz.",
+            spam="You'll love it.",
+            eggs="Good with spam.",
+        ),
+    )
+    def foo(
+        bar: int,
+        baz: "Thing",
+        qux: Annotated["Thing", "Extremely qux."],
+        spam: List["Thing"],
+        eggs: Dict[str, "Thing"],
+    ):
+        pass
+
+    class Thing:
+        pass
+
+    expected = cleandoc(
+        """
+    A function with typed parameters and forward refs.
+
+    Parameters
+    ----------
+    bar : int
+        This is very bar.
+    baz : Thing
+        This is totally baz.
+    qux : Thing
+        Extremely qux.
+    spam : list of Thing
+        You'll love it.
+    eggs : dict[str, Thing]
+        Good with spam.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)

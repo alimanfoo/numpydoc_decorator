@@ -1,7 +1,7 @@
 from collections.abc import Generator, Iterable, Iterator, Sequence
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Callable, Dict, List, Mapping, Optional
+from typing import Callable, Dict, ForwardRef, List, Mapping, Optional
 from typing import Sequence as SequenceType
 from typing import Tuple, Union
 
@@ -133,6 +133,12 @@ def format_type(t):
     if t == NoneType:
         return "None"
 
+    elif isinstance(t, str):
+        return t
+
+    elif isinstance(t, ForwardRef):
+        return t.__forward_arg__
+
     elif numpy and t == ArrayLike:
         return "array_like"
 
@@ -171,6 +177,9 @@ def format_type(t):
     elif t_orig in [tuple, Tuple] and t_args and Ellipsis in t_args:
         x = t_args[0]
         return "tuple of " + format_type(x)
+
+    elif t_orig and t_args:
+        return f"{format_type(t_orig)}[{', '.join([format_type(t) for t in t_args])}]"
 
     else:
         s = repr(t)
@@ -610,7 +619,7 @@ def _doc(
         f.__doc__ = docstring
 
         # strip Annotated types, these are unreadable in built-in help() function
-        f.__annotations__ = get_type_hints(f, include_extras=include_extras)
+        # f.__annotations__ = get_type_hints(f, include_extras=include_extras)
 
         return f
 
