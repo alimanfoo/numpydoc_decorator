@@ -32,7 +32,7 @@ class DocumentationError(Exception):
 def punctuate(s: str):
     # This is possibly controversial, should we be enforcing punctuation? Will
     # do so for now, as it is easy to forget a full stop at the end of a
-    # piece of documentation, but looks better if punctuation is consistent.
+    # piece of documentation, and it looks better if punctuation is consistent.
     if s:
         s = s.strip()
         s = s[0].capitalize() + s[1:]
@@ -41,17 +41,16 @@ def punctuate(s: str):
     return s
 
 
-# N.B., width of 72 is recommended in PEP8. It's also the default width
-# of the help tab in colab, so keeping under 72 ensures lines don't get
-# broken visually there, which can be confusing.
-
-
 def format_paragraph(s: str, width=72):
+    # N.B., width of 72 is recommended in PEP8. It's also the default width
+    # of the help tab in colab, so keeping under 72 ensures lines don't get
+    # broken visually there, which can be confusing.
+
     return fill(punctuate(dedent(s.strip(newline))), width=width) + newline
 
 
 def format_indented_paragraph(s: str):
-    # reduce width to account for indent
+    # Reduce width to 68 to account for indent.
     return indent(format_paragraph(s, width=68), prefix="    ")
 
 
@@ -66,10 +65,10 @@ def format_paragraphs(s: str):
             or paragraph.startswith(">")
             or paragraph.startswith("[")
         ):
-            # leave this as-is
+            # assume code or similar, leave this as-is
             docstring += paragraph + newline + newline
         else:
-            # fill
+            # assume text, fill
             docstring += fill(punctuate(paragraph)) + newline + newline
     return docstring
 
@@ -87,7 +86,7 @@ def format_parameters(parameters: Mapping[str, str], sig: Signature):
             continue
 
         if param_name not in parameters:
-            # account for documentation of parameters and other parameters separately
+            # allow for documentation of parameters and other parameters separately
             continue
 
         # add parameter name, accounting for variable parameters
@@ -125,7 +124,9 @@ def format_parameters(parameters: Mapping[str, str], sig: Signature):
 
 
 def format_type(t):
-    # This is probably a bit hacky, could be improved.
+    # Here we attempt to provide some kind of human-readable representation
+    # of types used in type hints.
+
     t_orig = typing_get_origin(t)
     t_args = typing_get_args(t)
 
@@ -150,40 +151,43 @@ def format_type(t):
     elif numpy and t == Optional[DTypeLike]:
         return "data-type or None"
 
-    # special handling for annotated types
     elif t_orig == Annotated:
+        # special handling for annotated types
         x = t_args[0]
         return format_type(x)
 
-    # special handling for union types
     elif t_orig == Union and t_args:
+        # special handling for union types
         return " or ".join([format_type(x) for x in t_args])
 
     elif t_orig == Optional and t_args:
         x = t_args[0]
         return format_type(x) + " or None"
 
-    # humanize Literal types
     elif t_orig == Literal and t_args:
+        # humanize Literal types
         return "{" + ", ".join([repr(i) for i in t_args]) + "}"
 
-    # humanize sequence types
     elif t_orig in [list, List, Sequence, SequenceType] and t_args:
+        # humanize sequence types
         x = t_args[0]
         return format_type(t_orig).lower() + " of " + format_type(x)
 
-    # humanize variable length tuples
     elif t_orig in [tuple, Tuple] and t_args and Ellipsis in t_args:
+        # humanize variable length tuples
         x = t_args[0]
         return "tuple of " + format_type(x)
 
     elif t_orig and t_args:
+        # deal with any other generic types
         return f"{format_type(t_orig)}[{', '.join([format_type(t) for t in t_args])}]"
 
     elif hasattr(t, "__name__"):
+        # assume some other kind of class
         return t.__name__
 
     else:
+        # fallback, hopefully should never reach here
         return repr(t)
 
 
@@ -401,7 +405,7 @@ def unpack_optional(t):
 
 
 def bypass_annotated(t):
-    """Strip Annotated types."""
+    """Bypass Annotated types."""
     t_orig = typing_get_origin(t)
     t_args = typing_get_args(t)
     if t_orig == Annotated:
