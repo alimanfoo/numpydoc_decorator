@@ -17,6 +17,7 @@ testfixtures = "*"
 numpy = "*"
 numpydoc = "*"
 mypy = "*"
+pydantic = "*"
 
 [build-system]
 requires = ["poetry-core"]
