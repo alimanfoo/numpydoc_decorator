@@ -363,7 +363,6 @@ def test_parameters_all_annotated():
     # documentation together, assuming second argument provides
     # the documentation.
 
-    # noinspection PyUnusedLocal
     @doc(
         summary="A function with annotated parameters.",
     )
@@ -2827,3 +2826,80 @@ def test_forward_refs():
     # check annotated types are bypassed
     compare(foo.__annotations__["norwegian_blue"], ForwardRef("Thing"))
     compare(foo.__annotations__["lumberjack_song"], Optional["Thing"])
+
+
+def test_annotated_doc():
+    # check we can use https://typing-extensions.readthedocs.io/en/latest/#Doc
+
+    from typing_extensions import Doc
+
+    @doc(
+        summary="A function with annotated parameters.",
+    )
+    def foo(
+        bar: Annotated[int, Doc("This is very bar.")],
+        baz: Annotated[str, Doc("This is totally baz.")],
+        qux: Annotated[Sequence, Doc("Many values.")],
+        spam: Annotated[Union[list, str], Doc("You'll love it.")],
+        eggs: Annotated[Dict[str, Sequence], Doc("Good with spam.")],
+        bacon: Annotated[Literal["xxx", "yyy", "zzz"], Doc("Good with eggs.")],
+        sausage: Annotated[List[int], Doc("Good with bacon.")],
+        lobster: Annotated[Tuple[float, ...], Doc("Good with sausage.")],
+        thermidor: Annotated[Sequence[str], Doc("A type of lobster dish.")],
+        norwegian_blue: Annotated[str, Doc("This is an ex-parrot.")],
+        lumberjack_song: Optional[
+            Annotated[int, Doc("I sleep all night and I work all day.")]
+        ],
+    ):
+        pass
+
+    expected = cleandoc(
+        """
+    A function with annotated parameters.
+
+    Parameters
+    ----------
+    bar : int
+        This is very bar.
+    baz : str
+        This is totally baz.
+    qux : Sequence
+        Many values.
+    spam : list or str
+        You'll love it.
+    eggs : dict[str, Sequence]
+        Good with spam.
+    bacon : {'xxx', 'yyy', 'zzz'}
+        Good with eggs.
+    sausage : list of int
+        Good with bacon.
+    lobster : tuple of float
+        Good with sausage.
+    thermidor : sequence of str
+        A type of lobster dish.
+    norwegian_blue : str
+        This is an ex-parrot.
+    lumberjack_song : int or None
+        I sleep all night and I work all day.
+
+    """
+    )
+    actual = getdoc(foo)
+    compare(actual, expected)
+    validate(foo)
+
+    # check annotated types are stripped
+    expected_annotations = {
+        "bar": int,
+        "baz": str,
+        "qux": Sequence,
+        "spam": Union[list, str],
+        "eggs": Dict[str, Sequence],
+        "bacon": Literal["xxx", "yyy", "zzz"],
+        "sausage": List[int],
+        "lobster": Tuple[float, ...],
+        "thermidor": Sequence[str],
+        "norwegian_blue": str,
+        "lumberjack_song": Optional[int],
+    }
+    compare(foo.__annotations__, expected_annotations)
