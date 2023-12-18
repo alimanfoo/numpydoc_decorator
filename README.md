@@ -18,7 +18,7 @@ because:
 
 ## Usage
 
-### Documentation a function
+### Documenting a function
 
 Here is an example of documenting a function:
 
@@ -228,6 +228,76 @@ Returns
 str
     A personal parting.
 ```
+
+Alternatively, to be more explicit about the value of the
+documentation string for the annotated type, you can use
+`typing_extensions.Doc`, e.g.:
+
+```python
+from numpydoc_decorator import doc
+from typing_extensions import Annotated, Doc
+
+
+class params:
+    name = Annotated[str, Doc("The name of a person.")]
+    language = Annotated[str, Doc("An ISO 639-1 language code.")]
+
+
+@doc(
+    summary="Say hello to someone you know.",
+)
+def say_hello(
+    name: params.name,
+    language: params.language,
+) -> Annotated[str, Doc("A personal greeting.")]:
+    pass
+
+
+@doc(
+    summary="Say goodbye to someone you know.",
+)
+def say_goodbye(
+    name: params.name,
+    language: params.language,
+) -> Annotated[str, Doc("A personal parting.")]:
+    pass
+```
+
+Pydantic fields are also supported, via the `description` attribute:
+
+```python
+from numpydoc_decorator import doc
+from typing_extensions import Annotated
+from pydantic import Field
+
+
+class params:
+    name = Annotated[str, Field(description="The name of a person.")]
+    language = Annotated[str, Field(description="An ISO 639-1 language code.")]
+
+
+@doc(
+    summary="Say hello to someone you know.",
+    returns="A personal greeting.",
+)
+def say_hello(
+    name: params.name,
+    language: params.language,
+) -> str:
+    pass
+
+
+@doc(
+    summary="Say goodbye to someone you know.",
+    returns="A personal parting.",
+)
+def say_goodbye(
+    name: params.name,
+    language: params.language,
+) -> str:
+    pass
+```
+
 
 ## Notes
 
