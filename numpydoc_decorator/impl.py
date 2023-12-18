@@ -9,7 +9,7 @@ from typing import Callable, Dict, ForwardRef, List, Mapping, Optional
 from typing import Sequence as SequenceType
 from typing import Tuple, Union
 
-from typing_extensions import Annotated, Literal, _AnnotatedAlias
+from typing_extensions import Annotated, Doc, Literal, _AnnotatedAlias
 from typing_extensions import get_args as typing_get_args
 from typing_extensions import get_origin as typing_get_origin
 
@@ -440,10 +440,19 @@ def get_annotated_doc(t, default=None):
     t_orig = typing_get_origin(t)
     t_args = typing_get_args(t)
     if t_orig == Annotated:
-        # assume first annotation provides documentation
-        x = t_args[1]
-        if isinstance(x, str):
-            return x
+        # look for a Doc annotation
+        for x in t_args[1:]:
+            if isinstance(x, Doc):
+                return x.documentation
+        # look for something like a pydantic Field
+        for x in t_args[1:]:
+            if hasattr(x, "description") and x.description:
+                return x.description
+        # look for a bare string, assume first provides documentation
+        for x in t_args[1:]:
+            if isinstance(x, str):
+                return x
+
     return default
 
 
