@@ -444,6 +444,10 @@ def get_annotated_doc(t, default=None):
         for x in t_args[1:]:
             if isinstance(x, Doc):
                 return x.documentation
+        # look for something like a pydantic Field
+        for x in t_args[1:]:
+            if hasattr(x, "description") and x.description:
+                return x.description
         # look for a bare string, assume first provides documentation
         for x in t_args[1:]:
             if isinstance(x, str):
