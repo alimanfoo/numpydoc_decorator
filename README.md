@@ -315,4 +315,4 @@ functions may choose not to annotate types for some or all parameters,
 but we still want to document them as best we can.
 
 ### Specific case notes
-* Data Classes: This package should work with [data classes](https://peps.python.org/pep-0557/) as implemented in the [`dataclasses` package](https://docs.python.org/3/library/dataclasses.html). It is, however, important to place the `@doc` _above/before_ the `@dataclass`. 
+* Data Classes: This package should work with [data classes](https://peps.python.org/pep-0557/) as implemented in the [`dataclasses` package](https://docs.python.org/3/library/dataclasses.html). It is, however, important to place the `@doc` _above/before_ the `@dataclass`.
