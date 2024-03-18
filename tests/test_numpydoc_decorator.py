@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from dataclasses import dataclass
 from inspect import cleandoc, getdoc
 from typing import (
     Dict,
@@ -2984,3 +2985,33 @@ def test_annotated_field():
         "lumberjack_song": Optional[int],
     }
     compare(foo.__annotations__, expected_annotations)
+
+
+def test_dataclass():
+    @doc(
+        summary="This tests @doc for a dataclass.",
+        parameters=dict(
+            x="This is a number.",
+            name="This is a name.",
+        ),
+    )
+    @dataclass
+    class MyDC:
+        x: int
+        name: str
+
+    expected = cleandoc(
+        """
+    This tests @doc for a dataclass.
+
+    Parameters
+    ----------
+    x : int
+        This is a number.
+    name : str
+        This is a name.
+    """
+    )
+    actual = getdoc(MyDC)
+    compare(actual, expected)
+    validate(MyDC)
