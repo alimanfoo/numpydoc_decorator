@@ -10,18 +10,31 @@ packages = [{include = "numpydoc_decorator"}]
 python = ">=3.9,<3.13"
 typing_extensions = "*"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+codespell = "*"
+colorama = "*"
+isort = "*"
+mypy = "*"
+numpy = "*"
+numpydoc = "*"
+pydantic = "*"
 pytest = "*"
 pytest-xdist = "*"
 testfixtures = "*"
-numpy = "*"
-numpydoc = "*"
-mypy = "*"
-pydantic = "*"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.codespell]
+skip = ".git,.mypy_cache,.vscode,__pycache__,pyproject.toml,poetry.lock"
+ignore-words-list = "jupyter,iff"  # prevent jupyter -> jupiter or iff -> if
+check-filenames = true
+uri-ignore-words-list = "*"
 
 [tool.isort]
 profile = "black"
@@ -30,3 +43,6 @@ profile = "black"
 enable = true
 vcs = "git"
 style = "semver"
+
+[tool.pylint]
+reports.output-format = "colorized"
