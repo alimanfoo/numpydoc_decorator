@@ -2,10 +2,10 @@
   pkgs ? import (builtins.fetchGit {
     url = "https://github.com/NixOS/nixpkgs/";
     ref = "refs/tags/23.11";
-  }) {}, 
+  }) {},
   dev ? true,
 }:
-let 
+let
   py310 = pkgs.python310;
   poetryExtras = if dev then ["dev"] else [];
   poetryInstallExtras = (
