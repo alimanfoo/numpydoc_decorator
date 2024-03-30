@@ -1,3 +1,4 @@
+from enum import Enum
 import functools
 import operator
 import types as _types
@@ -492,6 +493,75 @@ def auto_returns_multi(returns, ret_args):
     return returns_doc
 
 
+def _doc_enum(
+    summary: str, 
+    deprecation: Optional[Mapping[str, str]] = None,
+    extended_summary: Optional[str] = None,
+    parameters: Optional[Mapping[str, str]] = None,
+    see_also: Optional[
+        Union[str, SequenceType[str], Mapping[str, Optional[str]]]
+    ] = None,
+) -> Callable[[Callable], Callable]:
+    def decorator(f: Callable) -> Callable:
+        if not issubclass(f, Enum):
+            pass
+            #raise DocumentationError(f"cannot document {f.__name__} as if it's an Enum")
+        
+        docstring = newline
+
+        # check for missing parameters
+        for e in (m.name for m in f):
+            if e not in parameters:
+                raise DocumentationError(f"Parameter {e} not documented.")
+            
+        # add summary
+        if summary:
+            docstring += format_paragraph(summary)
+            docstring += newline
+
+        # add deprecation warning
+        if deprecation:
+            docstring += f".. deprecated:: {deprecation['version']}" + newline
+            docstring += format_indented_paragraph(deprecation["reason"])
+            docstring += newline
+
+        # add extended summary
+        if extended_summary:
+            docstring += format_paragraph(extended_summary)
+            docstring += newline
+
+        # add parameters section
+        if parameters:
+            docstring += "Parameters" + newline
+            docstring += "----------" + newline
+            for param_name, param_doc in parameters.items():
+                docstring += param_name
+                # add parameter description
+                docstring += newline
+                param_doc = parameters[param_name]
+                docstring += format_indented_paragraphs(param_doc).strip(newline)
+            docstring += newline
+
+        # add see also section
+        if see_also:
+            docstring += "See Also" + newline
+            docstring += "--------" + newline
+            docstring += format_see_also(see_also)
+            docstring += newline
+
+        # DEBUG
+        print(f"Setting docstring on {f}: {docstring}")
+        f.__doc__ = docstring
+        print("DOC: {f.__doc__}")
+        import inspect
+        print(f"getdoc: {inspect.getdoc(f)}")
+
+        return f
+    
+    return decorator
+        
+
+
 def _doc(
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
@@ -745,3 +815,31 @@ _docstring = _doc(
     ),
 )
 doc = _docstring(_doc)
+
+
+# eat our own dogfood
+_doc(
+    summary="""
+        Provide documentation for a function or method, to be formatted as a
+        numpy-style docstring (numpydoc).
+    """,
+    parameters=dict(
+        summary="""
+            A one-line summary that does not use variable names or the function name.
+        """,
+        deprecation="""
+            Warn users that the object is deprecated. Should include `version` and
+            `reason` keys.
+        """,
+        extended_summary="""
+            A few sentences giving an extended description.
+        """,
+        parameters="""
+            Description of the function arguments and keywords.
+        """,
+        see_also="""
+            An optional section used to refer to related code.
+        """,
+    ),
+)
+doc_enum = _docstring(_doc_enum)

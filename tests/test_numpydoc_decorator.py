@@ -1,5 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
+from enum import Enum
 from inspect import cleandoc, getdoc
 from typing import (
     Dict,
@@ -23,7 +24,7 @@ from numpydoc.validate import validate as numpydoc_validate
 from testfixtures import compare
 from typing_extensions import Annotated, Literal
 
-from numpydoc_decorator import DocumentationError, doc
+from numpydoc_decorator import DocumentationError, doc, doc_enum
 
 
 def validate(f, allow: Optional[Set[str]] = None) -> None:
@@ -3015,3 +3016,25 @@ def test_dataclass():
     actual = getdoc(MyDC)
     compare(actual, expected)
     validate(MyDC)
+
+
+def test_enum():
+    @doc_enum(
+        summary="This tests @doc for an enum.",
+        parameters=dict(First="This is the 1st value."),
+    )
+    class MyEnum(Enum):
+        First: str = "1st"
+
+    expected = cleandoc(
+        """
+    This tests @doc for an enum.
+
+    Parameters
+    ----------
+    First
+        This is the 1st value.
+    """
+    )
+    actual = getdoc(MyEnum)
+    compare(actual, expected)
