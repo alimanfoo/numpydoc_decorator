@@ -1,9 +1,9 @@
-from enum import Enum
 import functools
 import operator
 import types as _types
 import typing
 from collections.abc import Generator, Iterable, Iterator, Sequence
+from enum import Enum
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
 from typing import Callable, Dict, ForwardRef, List, Mapping, Optional
@@ -15,6 +15,7 @@ from typing_extensions import get_args as typing_get_args
 from typing_extensions import get_origin as typing_get_origin
 
 NoneType = type(None)
+SeeAlso = Union[str, SequenceType[str], Mapping[str, Optional[str]]]
 
 try:
     # check whether numpy is installed
@@ -494,46 +495,30 @@ def auto_returns_multi(returns, ret_args):
 
 
 def _doc_enum(
-    summary: str, 
+    summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
     extended_summary: Optional[str] = None,
     parameters: Optional[Mapping[str, str]] = None,
     see_also: Optional[
         Union[str, SequenceType[str], Mapping[str, Optional[str]]]
     ] = None,
-) -> Callable[[Callable], Callable]:
-    def decorator(f: Callable) -> Callable:
+) -> Callable[[type], type]:
+    def decorator(f: type) -> type:
         if not issubclass(f, Enum):
-            pass
-            #raise DocumentationError(f"cannot document {f.__name__} as if it's an Enum")
-        
-        docstring = newline
+            raise DocumentationError(f"cannot document {f.__name__} as if it's an Enum")
 
         # check for missing parameters
         for e in (m.name for m in f):
-            if e not in parameters:
+            if e not in (parameters or {}):
                 raise DocumentationError(f"Parameter {e} not documented.")
-            
-        # add summary
-        if summary:
-            docstring += format_paragraph(summary)
-            docstring += newline
 
-        # add deprecation warning
-        if deprecation:
-            docstring += f".. deprecated:: {deprecation['version']}" + newline
-            docstring += format_indented_paragraph(deprecation["reason"])
-            docstring += newline
-
-        # add extended summary
-        if extended_summary:
-            docstring += format_paragraph(extended_summary)
-            docstring += newline
+        docstring = _add_simple_section("", summary)
+        docstring = _add_deprecation(docstring, deprecation)
+        docstring = _add_simple_section(docstring, extended_summary)
 
         # add parameters section
         if parameters:
-            docstring += "Parameters" + newline
-            docstring += "----------" + newline
+            docstring = _add_parameters_header(docstring)
             for param_name, param_doc in parameters.items():
                 docstring += param_name
                 # add parameter description
@@ -542,24 +527,40 @@ def _doc_enum(
                 docstring += format_indented_paragraphs(param_doc).strip(newline)
             docstring += newline
 
-        # add see also section
-        if see_also:
-            docstring += "See Also" + newline
-            docstring += "--------" + newline
-            docstring += format_see_also(see_also)
-            docstring += newline
+        docstring = _add_see_also(docstring, see_also)
 
-        # DEBUG
-        print(f"Setting docstring on {f}: {docstring}")
-        f.__doc__ = docstring
-        print("DOC: {f.__doc__}")
-        import inspect
-        print(f"getdoc: {inspect.getdoc(f)}")
+        _attach_cleaned_docstring(f, docstring)
 
         return f
-    
+
     return decorator
-        
+
+
+def _add_deprecation(docstring: str, deprecation: Optional[Mapping[str, str]]) -> str:
+    if not deprecation:
+        return docstring
+    docstring += f".. deprecated:: {deprecation['version']}" + newline
+    docstring += format_indented_paragraph(deprecation["reason"])
+    return docstring + newline
+
+
+def _add_parameters_header(docstring: str) -> str:
+    return docstring + "Parameters" + newline + "----------" + newline
+
+
+def _add_see_also(docstring: str, see_also: Optional[SeeAlso] = None) -> str:
+    if not see_also:
+        return docstring
+    body = format_see_also(see_also)
+    return docstring + "See Also" + newline + "--------" + newline + body + newline
+
+
+def _add_simple_section(docstring: str, section: Optional[str]) -> str:
+    return docstring + ("" if not section else format_paragraph(section) + newline)
+
+
+def _attach_cleaned_docstring(f: Callable, docstring: str) -> None:
+    f.__doc__ = newline + cleandoc(docstring) + newline
 
 
 def _doc(
@@ -574,9 +575,7 @@ def _doc(
     raises: Optional[Mapping[str, str]] = None,
     warns: Optional[Mapping[str, str]] = None,
     warnings: Optional[str] = None,
-    see_also: Optional[
-        Union[str, SequenceType[str], Mapping[str, Optional[str]]]
-    ] = None,
+    see_also: Optional[SeeAlso] = None,
     notes: Optional[str] = None,
     references: Optional[Mapping[str, str]] = None,
     examples: Optional[str] = None,
@@ -629,26 +628,13 @@ def _doc(
         # N.B., intentionally allow extra parameters which are not in the
         # signature - this can be convenient for the user.
 
-        # add summary
-        if summary:
-            docstring += format_paragraph(summary)
-            docstring += newline
-
-        # add deprecation warning
-        if deprecation:
-            docstring += f".. deprecated:: {deprecation['version']}" + newline
-            docstring += format_indented_paragraph(deprecation["reason"])
-            docstring += newline
-
-        # add extended summary
-        if extended_summary:
-            docstring += format_paragraph(extended_summary)
-            docstring += newline
+        docstring = _add_simple_section(docstring, summary)
+        docstring = _add_deprecation(docstring, deprecation)
+        docstring = _add_simple_section(docstring, extended_summary)
 
         # add parameters section
         if param_docs:
-            docstring += "Parameters" + newline
-            docstring += "----------" + newline
+            docstring = _add_parameters_header(docstring)
             docstring += format_parameters(param_docs, sig)
             docstring += newline
 
@@ -695,15 +681,10 @@ def _doc(
         if warnings:
             docstring += "Warnings" + newline
             docstring += "--------" + newline
-            docstring += format_paragraph(warnings)
-            docstring += newline
+            docstring = _add_simple_section(docstring, warnings)
 
         # add see also section
-        if see_also:
-            docstring += "See Also" + newline
-            docstring += "--------" + newline
-            docstring += format_see_also(see_also)
-            docstring += newline
+        docstring = _add_see_also(docstring, see_also)
 
         # add notes section
         if notes:
@@ -724,11 +705,7 @@ def _doc(
             docstring += "--------" + newline
             docstring += format_paragraphs(examples)
 
-        # final cleanup
-        docstring = newline + cleandoc(docstring) + newline
-
-        # attach the docstring
-        f.__doc__ = docstring
+        _attach_cleaned_docstring(f, docstring)
 
         # strip Annotated types, these are unreadable in built-in help() function
         if not include_extras:
@@ -741,6 +718,18 @@ def _doc(
     return decorator
 
 
+_summary_description = """
+    A one-line summary that does not use variable names or the function name.
+"""
+_deprecation_description = """
+    Warn users that the object is deprecated. Should include `version` and
+    `reason` keys.
+"""
+_ext_summary_description = "A few sentences giving an extended description."
+_parameters_description = "Description of the function arguments and keywords."
+_see_also_description = "An optional section used to refer to related code."
+
+
 # eat our own dogfood
 _docstring = _doc(
     summary="""
@@ -748,19 +737,10 @@ _docstring = _doc(
         numpy-style docstring (numpydoc).
     """,
     parameters=dict(
-        summary="""
-            A one-line summary that does not use variable names or the function name.
-        """,
-        deprecation="""
-            Warn users that the object is deprecated. Should include `version` and
-            `reason` keys.
-        """,
-        extended_summary="""
-            A few sentences giving an extended description.
-        """,
-        parameters="""
-            Description of the function arguments and keywords.
-        """,
+        summary=_summary_description,
+        deprecation=_deprecation_description,
+        extended_summary=_ext_summary_description,
+        parameters=_parameters_description,
         returns="""
             Explanation of the returned values.
         """,
@@ -784,9 +764,7 @@ _docstring = _doc(
         warnings="""
             An optional section with cautions to the user in free text/reST.
         """,
-        see_also="""
-            An optional section used to refer to related code.
-        """,
+        see_also=_see_also_description,
         notes="""
             An optional section that provides additional information about the code,
             possibly including a discussion of the algorithm.
@@ -820,26 +798,15 @@ doc = _docstring(_doc)
 # eat our own dogfood
 _doc(
     summary="""
-        Provide documentation for a function or method, to be formatted as a
+        Provide documentation for an enum, to be formatted as a
         numpy-style docstring (numpydoc).
     """,
     parameters=dict(
-        summary="""
-            A one-line summary that does not use variable names or the function name.
-        """,
-        deprecation="""
-            Warn users that the object is deprecated. Should include `version` and
-            `reason` keys.
-        """,
-        extended_summary="""
-            A few sentences giving an extended description.
-        """,
-        parameters="""
-            Description of the function arguments and keywords.
-        """,
-        see_also="""
-            An optional section used to refer to related code.
-        """,
+        summary=_summary_description,
+        deprecation=_deprecation_description,
+        extended_summary=_ext_summary_description,
+        parameters=_parameters_description,
+        see_also=_see_also_description,
     ),
 )
 doc_enum = _docstring(_doc_enum)
