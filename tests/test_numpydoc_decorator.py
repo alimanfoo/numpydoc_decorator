@@ -24,7 +24,7 @@ from numpydoc.validate import validate as numpydoc_validate
 from testfixtures import compare
 from typing_extensions import Annotated, Literal
 
-from numpydoc_decorator import DocumentationError, doc, doc_enum
+from numpydoc_decorator import DocumentationError, doc
 
 
 def validate(f, allow: Optional[Set[str]] = None) -> None:
@@ -3019,9 +3019,9 @@ def test_dataclass():
 
 
 def test_enum():
-    @doc_enum(
+    @doc(
         summary="This tests @doc for an enum.",
-        parameters=dict(First="This is the 1st value."),
+        attributes=dict(First="This is the 1st value."),
     )
     class MyEnum(Enum):
         First: str = "1st"
@@ -3030,9 +3030,9 @@ def test_enum():
         """
     This tests @doc for an enum.
 
-    Parameters
+    Attributes
     ----------
-    First
+    First = "1st"
         This is the 1st value.
     """
     )

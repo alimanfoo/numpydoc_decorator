@@ -1,1 +1,1 @@
-from .impl import DocumentationError, doc, doc_enum  # noqa
+from .impl import DocumentationError, doc  # noqa

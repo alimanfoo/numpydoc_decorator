@@ -3,12 +3,20 @@ import operator
 import types as _types
 import typing
 from collections.abc import Generator, Iterable, Iterator, Sequence
-from enum import Enum
+from enum import Enum, EnumMeta
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import Callable, Dict, ForwardRef, List, Mapping, Optional
-from typing import Sequence as SequenceType
-from typing import Tuple, Union
+from typing import (
+    Callable, 
+    Dict, 
+    ForwardRef, 
+    List, Mapping, 
+    Optional, 
+    Sequence as SequenceType, 
+    Tuple, 
+    Union,
+    )
+import warnings
 
 from typing_extensions import Annotated, Doc, Literal, _AnnotatedAlias
 from typing_extensions import get_args as typing_get_args
@@ -495,45 +503,45 @@ def auto_returns_multi(returns, ret_args):
 
 
 def _doc_enum(
+    enum_type: EnumMeta,
     summary: str,
     deprecation: Optional[Mapping[str, str]] = None,
     extended_summary: Optional[str] = None,
-    parameters: Optional[Mapping[str, str]] = None,
+    attributes: Optional[Mapping[str, str]] = None,
     see_also: Optional[
         Union[str, SequenceType[str], Mapping[str, Optional[str]]]
     ] = None,
 ) -> Callable[[type], type]:
-    def decorator(f: type) -> type:
-        if not issubclass(f, Enum):
-            raise DocumentationError(f"cannot document {f.__name__} as if it's an Enum")
+    if not issubclass(enum_type, Enum):
+        raise DocumentationError(f"Cannot document {enum_type.__name__} as if it's an Enum")
 
-        # check for missing parameters
-        for e in (m.name for m in f):
-            if e not in (parameters or {}):
-                raise DocumentationError(f"Parameter {e} not documented.")
+    attributes: Mapping[str, str] = attributes or {}
+    extra_attrs = set(attributes) - set(e.name for e in enum_type)
+    if extra_attrs:
+        raise DocumentationError(f"Attributes to document for {enum_type.__name__} aren't members of that enum: {', '.join(extra_attrs)}")
 
-        docstring = _add_simple_section("", summary)
-        docstring = _add_deprecation(docstring, deprecation)
-        docstring = _add_simple_section(docstring, extended_summary)
+    docstring = _add_simple_section("", summary)
+    docstring = _add_deprecation(docstring, deprecation)
+    docstring = _add_simple_section(docstring, extended_summary)
 
-        # add parameters section
-        if parameters:
-            docstring = _add_parameters_header(docstring)
-            for param_name, param_doc in parameters.items():
-                docstring += param_name
-                # add parameter description
-                docstring += newline
-                param_doc = parameters[param_name]
-                docstring += format_indented_paragraphs(param_doc).strip(newline)
-            docstring += newline
+    # add attributes section
+    docstring = _add_section_heading(docstring=docstring, heading="Attributes")
+    for member in enum_type:
+        value_text = f"\"{member.value}\"" if isinstance(member.value, str) else str(member.value)
+        docstring += f"{member.name} = {value_text}"
+        try:
+            attr_doc = attributes[member.name]
+        except KeyError:
+            # no additional description to add
+            continue
+        # add parameter description
+        docstring += newline
+        docstring += format_indented_paragraphs(attr_doc).strip(newline)
+    docstring += newline
 
-        docstring = _add_see_also(docstring, see_also)
-
-        _attach_cleaned_docstring(f, docstring)
-
-        return f
-
-    return decorator
+    docstring = _add_see_also(docstring, see_also)
+    _attach_cleaned_docstring(enum_type, docstring)
+    return enum_type
 
 
 def _add_deprecation(docstring: str, deprecation: Optional[Mapping[str, str]]) -> str:
@@ -544,15 +552,15 @@ def _add_deprecation(docstring: str, deprecation: Optional[Mapping[str, str]]) -
     return docstring + newline
 
 
-def _add_parameters_header(docstring: str) -> str:
-    return docstring + "Parameters" + newline + "----------" + newline
+def _add_section_heading(*, docstring: str, heading: str) -> str:
+    return docstring + heading + newline + ("-" * len(heading)) + newline
 
 
 def _add_see_also(docstring: str, see_also: Optional[SeeAlso] = None) -> str:
     if not see_also:
         return docstring
     body = format_see_also(see_also)
-    return docstring + "See Also" + newline + "--------" + newline + body + newline
+    return _add_section_heading(docstring=docstring, heading="See Also") + body + newline
 
 
 def _add_simple_section(docstring: str, section: Optional[str]) -> str:
@@ -568,6 +576,7 @@ def _doc(
     deprecation: Optional[Mapping[str, str]] = None,
     extended_summary: Optional[str] = None,
     parameters: Optional[Mapping[str, str]] = None,
+    attributes: Optional[Mapping[str, str]] = None,
     returns: Optional[Union[str, Tuple[str, ...], Mapping[str, str]]] = None,
     yields: Optional[Union[str, Mapping[str, str]]] = None,
     receives: Optional[Union[str, Mapping[str, str]]] = None,
@@ -588,130 +597,146 @@ def _doc(
         raise DocumentationError("if receives, must also have yields")
 
     def decorator(f: Callable) -> Callable:
-        # set up utility variables
-        param_docs: Dict[str, str] = dict()
-        if parameters:
-            param_docs.update(parameters)
-        other_param_docs: Dict[str, str] = dict()
-        if other_parameters:
-            other_param_docs.update(other_parameters)
-        docstring = ""
-        sig = signature(f)
-
-        # accommodate use of Annotated types for parameters documentation
-        for param_name, param in sig.parameters.items():
-            t = unpack_optional(param.annotation)
-            param_doc = get_annotated_doc(t)
-            if param_doc:
-                param_docs.setdefault(param_name, param_doc)
-
-        # accommodate use of Annotated types for returns documentation
-        return_annotation = sig.return_annotation
-        if (
-            return_annotation is not Parameter.empty
-            and return_annotation is not None
-            and return_annotation != NoneType
-            and yields is None
-        ):
-            returns_doc = auto_returns(returns, return_annotation)
+        try:
+            is_enum = issubclass(f, Enum)
+        except TypeError:
+            is_enum = False
+        if is_enum:
+            # DEBUG
+            print(f"Doc'ing as enum")
+            if parameters:
+                if not attributes:
+                    warnings.warn("For enum documentation, use attributes rather than parameters.", DeprecationWarning)
+                    f = _doc_enum(f, attributes=parameters)
+                else:
+                    raise DocumentationError("Specify either parameters (documenting non-enum) OR attributes (documenting enum), not both")
+            else:
+                f = _doc_enum(f, summary=summary, deprecation=deprecation, extended_summary=extended_summary, attributes=attributes, see_also=see_also)
         else:
-            returns_doc = returns
+            # set up utility variables
+            param_docs: Dict[str, str] = dict()
+            if parameters:
+                param_docs.update(parameters)
+            other_param_docs: Dict[str, str] = dict()
+            if other_parameters:
+                other_param_docs.update(other_parameters)
+            docstring = ""
+            sig = signature(f)
 
-        # check for missing parameters
-        all_param_docs: Dict[str, str] = dict()
-        all_param_docs.update(param_docs)
-        all_param_docs.update(other_param_docs)
-        for e in sig.parameters:
-            if e != "self" and e not in all_param_docs:
-                raise DocumentationError(f"Parameter {e} not documented.")
+            # accommodate use of Annotated types for parameters documentation
+            for param_name, param in sig.parameters.items():
+                t = unpack_optional(param.annotation)
+                param_doc = get_annotated_doc(t)
+                if param_doc:
+                    param_docs.setdefault(param_name, param_doc)
 
-        # N.B., intentionally allow extra parameters which are not in the
-        # signature - this can be convenient for the user.
+            # accommodate use of Annotated types for returns documentation
+            return_annotation = sig.return_annotation
+            if (
+                return_annotation is not Parameter.empty
+                and return_annotation is not None
+                and return_annotation != NoneType
+                and yields is None
+            ):
+                returns_doc = auto_returns(returns, return_annotation)
+            else:
+                returns_doc = returns
 
-        docstring = _add_simple_section(docstring, summary)
-        docstring = _add_deprecation(docstring, deprecation)
-        docstring = _add_simple_section(docstring, extended_summary)
+            # check for missing parameters
+            all_param_docs: Dict[str, str] = dict()
+            all_param_docs.update(param_docs)
+            all_param_docs.update(other_param_docs)
+            for e in sig.parameters:
+                if e != "self" and e not in all_param_docs:
+                    raise DocumentationError(f"Parameter {e} not documented.")
 
-        # add parameters section
-        if param_docs:
-            docstring = _add_parameters_header(docstring)
-            docstring += format_parameters(param_docs, sig)
-            docstring += newline
+            # N.B., intentionally allow extra parameters which are not in the
+            # signature - this can be convenient for the user.
 
-        # add returns section
-        if returns_doc:
-            docstring += "Returns" + newline
-            docstring += "-------" + newline
-            docstring += format_returns(returns_doc, sig)
+            docstring = _add_simple_section(docstring, summary)
+            docstring = _add_deprecation(docstring, deprecation)
+            docstring = _add_simple_section(docstring, extended_summary)
 
-        # add yields section
-        if yields:
-            docstring += "Yields" + newline
-            docstring += "------" + newline
-            docstring += format_yields(yields, sig)
+            # add parameters section
+            if param_docs:
+                docstring = _add_section_heading(docstring=docstring, heading="Parameters")
+                docstring += format_parameters(param_docs, sig)
+                docstring += newline
 
-        # add receives section
-        if receives:
-            docstring += "Receives" + newline
-            docstring += "--------" + newline
-            docstring += format_receives(receives, sig)
+            # add returns section
+            if returns_doc:
+                docstring += "Returns" + newline
+                docstring += "-------" + newline
+                docstring += format_returns(returns_doc, sig)
 
-        # add other parameters section
-        if other_param_docs:
-            docstring += "Other Parameters" + newline
-            docstring += "----------------" + newline
-            docstring += format_parameters(other_param_docs, sig)
-            docstring += newline
+            # add yields section
+            if yields:
+                docstring += "Yields" + newline
+                docstring += "------" + newline
+                docstring += format_yields(yields, sig)
 
-        # add raises section
-        if raises:
-            docstring += "Raises" + newline
-            docstring += "------" + newline
-            docstring += format_raises(raises)
-            docstring += newline
+            # add receives section
+            if receives:
+                docstring += "Receives" + newline
+                docstring += "--------" + newline
+                docstring += format_receives(receives, sig)
 
-        # add warns section
-        if warns:
-            docstring += "Warns" + newline
-            docstring += "-----" + newline
-            docstring += format_raises(warns)
-            docstring += newline
+            # add other parameters section
+            if other_param_docs:
+                docstring += "Other Parameters" + newline
+                docstring += "----------------" + newline
+                docstring += format_parameters(other_param_docs, sig)
+                docstring += newline
 
-        # add warnings section
-        if warnings:
-            docstring += "Warnings" + newline
-            docstring += "--------" + newline
-            docstring = _add_simple_section(docstring, warnings)
+            # add raises section
+            if raises:
+                docstring += "Raises" + newline
+                docstring += "------" + newline
+                docstring += format_raises(raises)
+                docstring += newline
 
-        # add see also section
-        docstring = _add_see_also(docstring, see_also)
+            # add warns section
+            if warns:
+                docstring += "Warns" + newline
+                docstring += "-----" + newline
+                docstring += format_raises(warns)
+                docstring += newline
 
-        # add notes section
-        if notes:
-            docstring += "Notes" + newline
-            docstring += "-----" + newline
-            docstring += format_paragraphs(notes)
+            # add warnings section
+            if warnings:
+                docstring += "Warnings" + newline
+                docstring += "--------" + newline
+                docstring = _add_simple_section(docstring, warnings)
 
-        # add references section
-        if references:
-            docstring += "References" + newline
-            docstring += "----------" + newline
-            docstring += format_references(references)
-            docstring += newline
+            # add see also section
+            docstring = _add_see_also(docstring, see_also)
 
-        # add examples section
-        if examples:
-            docstring += "Examples" + newline
-            docstring += "--------" + newline
-            docstring += format_paragraphs(examples)
+            # add notes section
+            if notes:
+                docstring += "Notes" + newline
+                docstring += "-----" + newline
+                docstring += format_paragraphs(notes)
 
-        _attach_cleaned_docstring(f, docstring)
+            # add references section
+            if references:
+                docstring += "References" + newline
+                docstring += "----------" + newline
+                docstring += format_references(references)
+                docstring += newline
 
-        # strip Annotated types, these are unreadable in built-in help() function
-        if not include_extras:
-            f.__annotations__ = {
-                k: strip_extras(v) for k, v in f.__annotations__.items()
-            }
+            # add examples section
+            if examples:
+                docstring += "Examples" + newline
+                docstring += "--------" + newline
+                docstring += format_paragraphs(examples)
+
+            _attach_cleaned_docstring(f, docstring)
+
+            # strip Annotated types, these are unreadable in built-in help() function
+            if not include_extras:
+                f.__annotations__ = {
+                    k: strip_extras(v) for k, v in f.__annotations__.items()
+                }
 
         return f
 
@@ -741,6 +766,7 @@ _docstring = _doc(
         deprecation=_deprecation_description,
         extended_summary=_ext_summary_description,
         parameters=_parameters_description,
+        attributes="Like parameters, but for members of an enum.",
         returns="""
             Explanation of the returned values.
         """,
@@ -793,20 +819,3 @@ _docstring = _doc(
     ),
 )
 doc = _docstring(_doc)
-
-
-# eat our own dogfood
-_doc(
-    summary="""
-        Provide documentation for an enum, to be formatted as a
-        numpy-style docstring (numpydoc).
-    """,
-    parameters=dict(
-        summary=_summary_description,
-        deprecation=_deprecation_description,
-        extended_summary=_ext_summary_description,
-        parameters=_parameters_description,
-        see_also=_see_also_description,
-    ),
-)
-doc_enum = _docstring(_doc_enum)
