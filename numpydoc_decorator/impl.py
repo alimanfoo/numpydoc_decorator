@@ -537,6 +537,7 @@ def _doc_enum(
         # add parameter description
         docstring += newline
         docstring += format_indented_paragraphs(attr_doc).strip(newline)
+        docstring += newline
     docstring += newline
 
     docstring = _add_see_also(docstring, see_also)

@@ -3018,13 +3018,14 @@ def test_dataclass():
     validate(MyDC)
 
 
-def test_enum():
+def test_simple_enum():
     @doc(
         summary="This tests @doc for an enum.",
         attributes=dict(First="This is the 1st value."),
     )
     class MyEnum(Enum):
         First: str = "1st"
+        Second: str = "2nd"
 
     expected = cleandoc(
         """
@@ -3034,6 +3035,7 @@ def test_enum():
     ----------
     First = "1st"
         This is the 1st value.
+    Second = "2nd"
     """
     )
     actual = getdoc(MyEnum)
