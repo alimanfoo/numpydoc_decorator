@@ -6,17 +6,10 @@ from collections.abc import Generator, Iterable, Iterator, Sequence
 from enum import Enum, EnumMeta
 from inspect import Parameter, Signature, cleandoc, signature
 from textwrap import dedent, fill, indent
-from typing import (
-    Callable, 
-    Dict, 
-    ForwardRef, 
-    List, Mapping, 
-    Optional, 
-    Sequence as SequenceType, 
-    Tuple, 
-    Union,
-    )
-import warnings
+from typing import Callable, Dict, ForwardRef, List, Mapping, Optional
+from typing import Sequence as SequenceType
+from typing import Tuple, Union
+from warnings import warn as emit_warning
 
 from typing_extensions import Annotated, Doc, Literal, _AnnotatedAlias
 from typing_extensions import get_args as typing_get_args
@@ -511,14 +504,18 @@ def _doc_enum(
     see_also: Optional[
         Union[str, SequenceType[str], Mapping[str, Optional[str]]]
     ] = None,
-) -> Callable[[type], type]:
+) -> EnumMeta:
     if not issubclass(enum_type, Enum):
-        raise DocumentationError(f"Cannot document {enum_type.__name__} as if it's an Enum")
+        raise DocumentationError(
+            f"Cannot document {enum_type.__name__} as if it's an Enum"  # type: ignore[attr-defined]
+        )
 
-    attributes: Mapping[str, str] = attributes or {}
-    extra_attrs = set(attributes) - set(e.name for e in enum_type)
+    attributes: Mapping[str, str] = attributes or {}  # type: ignore[no-redef]
+    extra_attrs = sorted(set(attributes) - set(e.name for e in enum_type))  # type: ignore[arg-type]
     if extra_attrs:
-        raise DocumentationError(f"Attributes to document for {enum_type.__name__} aren't members of that enum: {', '.join(extra_attrs)}")
+        raise DocumentationError(
+            f"Attributes to document for {enum_type.__name__} aren't members of that enum: {', '.join(extra_attrs)}"
+        )
 
     docstring = _add_simple_section("", summary)
     docstring = _add_deprecation(docstring, deprecation)
@@ -527,16 +524,19 @@ def _doc_enum(
     # add attributes section
     docstring = _add_section_heading(docstring=docstring, heading="Attributes")
     for member in enum_type:
-        value_text = f"\"{member.value}\"" if isinstance(member.value, str) else str(member.value)
+        value_text = (
+            f'"{member.value}"' if isinstance(member.value, str) else str(member.value)
+        )
         docstring += f"{member.name} = {value_text}"
         try:
-            attr_doc = attributes[member.name]
+            attr_doc = attributes[member.name]  # type: ignore[index]
         except KeyError:
             # no additional description to add
-            continue
-        # add parameter description
-        docstring += newline
-        docstring += format_indented_paragraphs(attr_doc).strip(newline)
+            pass
+        else:
+            # add parameter description
+            docstring += newline
+            docstring += format_indented_paragraphs(attr_doc).strip(newline)
         docstring += newline
     docstring += newline
 
@@ -561,7 +561,9 @@ def _add_see_also(docstring: str, see_also: Optional[SeeAlso] = None) -> str:
     if not see_also:
         return docstring
     body = format_see_also(see_also)
-    return _add_section_heading(docstring=docstring, heading="See Also") + body + newline
+    return (
+        _add_section_heading(docstring=docstring, heading="See Also") + body + newline
+    )
 
 
 def _add_simple_section(docstring: str, section: Optional[str]) -> str:
@@ -599,20 +601,28 @@ def _doc(
 
     def decorator(f: Callable) -> Callable:
         try:
-            is_enum = issubclass(f, Enum)
+            is_enum = issubclass(f, Enum)  # type: ignore[arg-type]
         except TypeError:
             is_enum = False
         if is_enum:
-            # DEBUG
-            print(f"Doc'ing as enum")
             if parameters:
                 if not attributes:
-                    warnings.warn("For enum documentation, use attributes rather than parameters.", DeprecationWarning)
-                    f = _doc_enum(f, attributes=parameters)
+                    emit_warning(
+                        "For enum documentation, use attributes rather than parameters.",
+                        DeprecationWarning,
+                    )
                 else:
-                    raise DocumentationError("Specify either parameters (documenting non-enum) OR attributes (documenting enum), not both")
-            else:
-                f = _doc_enum(f, summary=summary, deprecation=deprecation, extended_summary=extended_summary, attributes=attributes, see_also=see_also)
+                    raise DocumentationError(
+                        "Specify either parameters (documenting non-enum) OR attributes (documenting enum), not both"
+                    )
+            f = _doc_enum(
+                f,  # type: ignore[arg-type]
+                summary=summary,
+                deprecation=deprecation,
+                extended_summary=extended_summary,
+                attributes=attributes or parameters,
+                see_also=see_also,
+            )
         else:
             # set up utility variables
             param_docs: Dict[str, str] = dict()
@@ -660,7 +670,9 @@ def _doc(
 
             # add parameters section
             if param_docs:
-                docstring = _add_section_heading(docstring=docstring, heading="Parameters")
+                docstring = _add_section_heading(
+                    docstring=docstring, heading="Parameters"
+                )
                 docstring += format_parameters(param_docs, sig)
                 docstring += newline
 

@@ -3040,3 +3040,90 @@ def test_simple_enum():
     )
     actual = getdoc(MyEnum)
     compare(actual, expected)
+
+
+def test_extra_enum_attributes_is_error():
+    with pytest.raises(DocumentationError) as err_ctx:
+
+        @doc(
+            summary="Attributes to doc for enum which aren't members is bad.",
+            attributes=dict(
+                First="This is the 1st value.",
+                Extra1="This isn't a member.",
+                Second="Second good value.",
+                Extra2="This also isn't a member,",
+            ),
+        )
+        class MyEnum(Enum):
+            First: str = "1st"
+            Second: str = "2nd"
+
+    assert (
+        str(err_ctx.value)
+        == "Attributes to document for MyEnum aren't members of that enum: Extra1, Extra2"
+    )
+
+
+def test_undocumented_enum_members_are_properly_stubbed():
+    @doc(summary="This tests @doc for an enum.")
+    class MyEnum(Enum):
+        First: str = "1st"
+        Second: str = "2nd"
+
+    expected = cleandoc(
+        """
+    This tests @doc for an enum.
+
+    Attributes
+    ----------
+    First = "1st"
+    Second = "2nd"
+    """
+    )
+    actual = getdoc(MyEnum)
+    compare(actual, expected)
+
+
+def test_cannot_pass_parameters_and_arguments_for_enum():
+    with pytest.raises(DocumentationError) as err_ctx:
+
+        @doc(
+            summary="Attributes to doc for enum which aren't members is bad.",
+            attributes=dict(First="This is the first value."),
+            parameters=dict(Second="This is the next value."),
+        )
+        class MyEnum(Enum):
+            First: str = "1st"
+            Second: str = "2nd"
+
+    assert (
+        str(err_ctx.value)
+        == "Specify either parameters (documenting non-enum) OR attributes (documenting enum), not both"
+    )
+
+
+def test_parameters_rather_than_attributes_for_enum_is_warning_but_properly_used():
+    with pytest.warns(
+        DeprecationWarning,
+        match="For enum documentation, use attributes rather than parameters.",
+    ):
+
+        @doc(
+            summary="This tests @doc for an enum.",
+            parameters=dict(First="This is the 1st value."),
+        )
+        class MyEnum(Enum):
+            First: str = "1st"
+
+    expected = cleandoc(
+        """
+    This tests @doc for an enum.
+
+    Attributes
+    ----------
+    First = "1st"
+        This is the 1st value.
+    """
+    )
+    actual = getdoc(MyEnum)
+    compare(actual, expected)
