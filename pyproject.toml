@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "numpydoc_decorator"}]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.10,<3.14"
 typing_extensions = "*"
 
 [tool.poetry.group.dev]
