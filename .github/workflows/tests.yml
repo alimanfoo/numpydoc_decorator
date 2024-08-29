@@ -11,8 +11,8 @@ jobs:
         strategy:
             fail-fast: true
             matrix:
-                python-version: ['3.9', '3.10', '3.11', '3.12']
-                poetry-version: ['1.7.1']
+                python-version: ['3.10', '3.11', '3.12']
+                poetry-version: ['1.8.3']
                 os: [ubuntu-latest]
         runs-on: ${{ matrix.os }}
         steps:
@@ -23,7 +23,7 @@ jobs:
               run: pipx install poetry==${{ matrix.poetry-version }}
 
             - name: Setup python
-              uses: actions/setup-python@v4
+              uses: actions/setup-python@v5
               with:
                   python-version: ${{ matrix.python-version }}
                   cache: 'poetry'
