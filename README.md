@@ -299,6 +299,33 @@ def say_goodbye(
 ```
 
 
+### Internationalisation and localisation of docstrings
+
+It should be possible to add internationalisation of docstrings via the [gettext](https://docs.python.org/3/library/gettext.html) module. The example below marks some parts of a docstring as available for translation:
+
+```python
+from numpydoc_decorator import doc
+import gettext
+# Initialise gettext somehow.
+_ = gettext.gettext
+
+@doc(
+    summary=_("Echo some text."),
+    parameters=dict(
+        text=_("The text you want to echo."),
+    ),
+)
+def echo(
+    text: str,
+) -> str:
+    print(text)
+
+```
+
+Because the docstrings will be constructed at the point when the module is loaded by a user, the docstrings should then be built for the user's current locale. This is obviously something that only makes sense when your package is designed for interactive use.
+
+Caveat: I haven't tried this, any suggestions for best practices welcome.
+
 ## Notes
 
 There are probably lots of edge cases that this package has not
